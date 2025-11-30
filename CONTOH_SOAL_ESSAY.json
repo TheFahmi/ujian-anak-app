@@ -1,0 +1,71 @@
+{
+    "id": 4,
+    "nama": "Bahasa Indonesia",
+    "kelas": "Kelas 3",
+    "soal": [
+        {
+            "id": 1,
+            "pertanyaan": "Apa sinonim dari kata 'senang'?",
+            "pilihan": [
+                {
+                    "id": "A",
+                    "text": "Sedih"
+                },
+                {
+                    "id": "B",
+                    "text": "Gembira"
+                },
+                {
+                    "id": "C",
+                    "text": "Marah"
+                },
+                {
+                    "id": "D",
+                    "text": "Takut"
+                }
+            ],
+            "jawaban_benar": "B"
+        },
+        {
+            "id": 2,
+            "tipe": "isian",
+            "pertanyaan": "Tuliskan 3 kalimat tentang kegiatan yang kamu lakukan di sekolah!",
+            "rubrik_penilaian": "Penilaian berdasarkan: 1) Kelengkapan 3 kalimat, 2) Penggunaan huruf kapital dan tanda baca yang benar, 3) Kesesuaian dengan topik kegiatan sekolah"
+        },
+        {
+            "id": 3,
+            "pertanyaan": "Manakah yang termasuk kalimat tanya?",
+            "pilihan": [
+                {
+                    "id": "A",
+                    "text": "Saya suka membaca buku"
+                },
+                {
+                    "id": "B",
+                    "text": "Kapan kamu akan datang?"
+                },
+                {
+                    "id": "C",
+                    "text": "Tolong bawa buku itu"
+                },
+                {
+                    "id": "D",
+                    "text": "Hati-hati di jalan!"
+                }
+            ],
+            "jawaban_benar": "B"
+        },
+        {
+            "id": 4,
+            "tipe": "isian",
+            "pertanyaan": "Buatlah sebuah kalimat perintah yang sopan!",
+            "rubrik_penilaian": "Penilaian berdasarkan: 1) Merupakan kalimat perintah yang benar, 2) Menggunakan kata yang sopan (tolong, mohon, silakan, dll), 3) Penggunaan tanda baca yang tepat"
+        },
+        {
+            "id": 5,
+            "tipe": "isian",
+            "pertanyaan": "Ceritakan tentang cita-citamu dan alasannya! (minimal 4 kalimat)",
+            "rubrik_penilaian": "Penilaian berdasarkan: 1) Minimal 4 kalimat, 2) Menyebutkan cita-cita dengan jelas, 3) Menjelaskan alasan, 4) Tata bahasa dan ejaan yang baik"
+        }
+    ]
+}

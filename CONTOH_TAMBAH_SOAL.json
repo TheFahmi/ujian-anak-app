@@ -1,0 +1,48 @@
+[
+    {
+        "pertanyaan": "Siapa presiden pertama Indonesia?",
+        "pilihan": [
+            {
+                "text": "Soekarno"
+            },
+            {
+                "text": "Soeharto"
+            },
+            {
+                "text": "Habibie"
+            },
+            {
+                "text": "Megawati"
+            }
+        ],
+        "jawaban_benar": "A"
+    },
+    {
+        "pertanyaan": "Kapan Indonesia merdeka?",
+        "pilihan": [
+            {
+                "text": "17 Agustus 1945"
+            },
+            {
+                "text": "20 Mei 1908"
+            },
+            {
+                "text": "1 Juni 1945"
+            },
+            {
+                "text": "10 November 1945"
+            }
+        ],
+        "jawaban_benar": "A"
+    },
+    {
+        "tipe": "isian",
+        "pertanyaan": "Jelaskan pentingnya Sumpah Pemuda bagi Indonesia!",
+        "rubrik_penilaian": "Penilaian berdasarkan: 1) Menyebutkan tanggal/tahun Sumpah Pemuda, 2) Menjelaskan isi sumpah, 3) Menjelaskan dampak terhadap persatuan, 4) Tata bahasa yang baik"
+    },
+    {
+        "tipe": "isian",
+        "pertanyaan": "Tuliskan 3 pahlawan nasional Indonesia dan perannya!",
+        "rubrik_penilaian": "Penilaian berdasarkan: 1) Menyebutkan minimal 3 nama pahlawan, 2) Menjelaskan peran masing-masing, 3) Kelengkapan informasi, 4) Tata bahasa"
+    }
+]

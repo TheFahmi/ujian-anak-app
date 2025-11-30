@@ -1,0 +1,128 @@
+{
+    "mata_pelajaran": [
+        {
+            "id": 1,
+            "nama": "Matematika",
+            "kelas": "Kelas 1",
+            "soal": [
+                {
+                    "id": 1,
+                    "pertanyaan": "Berapa hasil dari 5 + 3?",
+                    "pilihan": [
+                        {
+                            "id": "A",
+                            "text": "6"
+                        },
+                        {
+                            "id": "B",
+                            "text": "7"
+                        },
+                        {
+                            "id": "C",
+                            "text": "8"
+                        },
+                        {
+                            "id": "D",
+                            "text": "9"
+                        }
+                    ],
+                    "jawaban_benar": "C"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "nama": "Bahasa Indonesia",
+            "kelas": "Kelas 1",
+            "soal": [
+                {
+                    "id": 1,
+                    "pertanyaan": "Apa arti kata 'perpustakaan'?",
+                    "pilihan": [
+                        {
+                            "id": "A",
+                            "text": "Tempat berjualan buku"
+                        },
+                        {
+                            "id": "B",
+                            "text": "Tempat membaca buku"
+                        },
+                        {
+                            "id": "C",
+                            "text": "Tempat berkumpul"
+                        },
+                        {
+                            "id": "D",
+                            "text": "Tempat menulis buku"
+                        }
+                    ],
+                    "jawaban_benar": "B"
+                },
+                {
+                    "id": 2,
+                    "tipe": "isian",
+                    "pertanyaan": "Tuliskan 3 kalimat tentang hewan kesukaan kamu!",
+                    "rubrik_penilaian": "Penilaian berdasarkan: 1) Kelengkapan 3 kalimat, 2) Penggunaan tanda baca yang benar, 3) Kesesuaian dengan topik hewan"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "nama": "Matematika",
+            "kelas": "Kelas 5",
+            "soal": [
+                {
+                    "id": 1,
+                    "pertanyaan": "Berapa luas persegi dengan sisi 5cm?",
+                    "pilihan": [
+                        {
+                            "id": "A",
+                            "text": "10 cm²"
+                        },
+                        {
+                            "id": "B",
+                            "text": "20 cm²"
+                        },
+                        {
+                            "id": "C",
+                            "text": "25 cm²"
+                        },
+                        {
+                            "id": "D",
+                            "text": "15 cm²"
+                        }
+                    ],
+                    "jawaban_benar": "C"
+                }
+            ]
+        }
+    ],
+    "pengguna": [
+        {
+            "id": "admin-uuid-1",
+            "role": "admin",
+            "username": "admin",
+            "password": "adminpassword",
+            "mata_pelajaran": []
+        },
+        {
+            "id": "siswa-uuid-1",
+            "role": "siswa",
+            "username": "siswa1",
+            "password": "siswapassword",
+            "mata_pelajaran": [
+                1,
+                2
+            ]
+        },
+        {
+            "id": "siswa-uuid-2",
+            "role": "siswa",
+            "username": "siswa2",
+            "password": "siswapassword",
+            "mata_pelajaran": [
+                3
+            ]
+        }
+    ]
+}
