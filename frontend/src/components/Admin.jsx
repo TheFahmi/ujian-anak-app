@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../context/ToastContext';
-import './Admin.css';
 
 const Admin = ({ onLogout }) => {
     const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'subjects', 'users', 'results', 'import', 'add-questions'
