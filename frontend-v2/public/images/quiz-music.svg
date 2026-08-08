@@ -1,0 +1,13 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradMusic" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a18cd1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fbc2eb;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="4" dy="8" stdDeviation="4" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <circle cx="100" cy="100" r="75" fill="url(#gradMusic)" filter="url(#shadow)" />
+  <path d="M80 130 A15 15 0 1 1 50 130 A15 15 0 0 1 80 130 V70 L140 50 V110 A15 15 0 1 1 110 110 A15 15 0 0 1 140 110 V50 L80 70 Z" fill="#fff" opacity="0.9" />
+</svg>

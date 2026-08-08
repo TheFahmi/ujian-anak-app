@@ -17,6 +17,8 @@ services:
       - MONGO_URI=mongodb://mongo:27017/ujian_db
       - PORT=3002
       - CHUTES_API_TOKEN=${CHUTES_API_TOKEN}
+      - CHUTES_API_TOKEN_2=${CHUTES_API_TOKEN_2}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     depends_on:
       - mongo
     restart: unless-stopped
@@ -28,9 +30,14 @@ services:
       start_period: 40s
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - VITE_ENCRYPTION_KEY=${ENCRYPTION_KEY}
     ports:
-      - "7890:7890"
+      - "7891:7890"
+    environment:
+      - VITE_ENCRYPTION_KEY=${ENCRYPTION_KEY}
     depends_on:
       - backend
     restart: unless-stopped
@@ -44,12 +51,39 @@ services:
   tunnel:
     image: cloudflare/cloudflared
     restart: always
-    network_mode: "service:frontend"
+    network_mode: "service:frontend-v2"
     command: tunnel run
     environment:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
     depends_on:
-      - frontend
+      - frontend-v2
+
+  backend-v2:
+    build: ./backend-v2
+    ports:
+      - "3003:3000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/ujian_db
+      - PORT=3000
+      - PECUT_AI_URL=${PECUT_AI_URL}
+      - PECUT_AI_TOKEN=${PECUT_AI_TOKEN}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+  frontend-v2:
+    build:
+      context: ./frontend-v2
+      args:
+        - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    ports:
+      - "7890:7890"
+    environment:
+      - NEXT_PUBLIC_ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    depends_on:
+      - backend-v2
+    restart: unless-stopped
 
 volumes:
   mongo-data:

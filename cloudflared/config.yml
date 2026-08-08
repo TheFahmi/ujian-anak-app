@@ -1,0 +1,18 @@
+tunnel: d2902f07-89ef-4357-b133-c16ae51e8466
+credentials-file: /etc/cloudflared/creds.json
+
+ingress:
+  - hostname: cctv.mfah.me
+    path: /api/ws
+    service: http://localhost:1984
+    originRequest:
+      httpHostHeader: localhost:1984
+  - hostname: cctv.mfah.me
+    service: http://localhost:3100
+  - hostname: cctvai.mfah.me
+    service: http://localhost:5000
+  - hostname: airis.mfah.me
+    service: http://localhost:9400
+  - hostname: temanujian.mfah.me
+    service: http://localhost:7890
+  - service: http_status:404

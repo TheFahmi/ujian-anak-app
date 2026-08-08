@@ -1,0 +1,5 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="45" fill="#000000" stroke="#F4C025" stroke-width="4"/>
+  <text x="50" y="60" font-size="30" fill="#F4C025" font-weight="bold" font-family="sans-serif" text-anchor="middle">VIP</text>
+</svg>
