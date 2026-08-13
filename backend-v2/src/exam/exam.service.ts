@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import * as CryptoJS from 'crypto-js';
 import { ConfigService } from '@nestjs/config';
+import { TokenService } from '../token/token.service';
 
 // Badge definitions - same as backend original
 const BADGES = [
@@ -32,6 +33,7 @@ export class ExamService {
     constructor(
         private prisma: PrismaService,
         private configService: ConfigService,
+        private tokenService: TokenService,
     ) { }
 
     private encryptData(data: any): string {
@@ -755,6 +757,22 @@ FEEDBACK: [1 kalimat singkat]`;
 
             const score = parsed.score !== null ? parsed.score : 0;
             const feedback = parsed.feedback || '';
+
+            // Record token usage (koreksi essay AI)
+            try {
+                const usage = data.usage || {};
+                const inputTokens = usage.prompt_tokens || this.tokenService.estimateTokens(prompt);
+                const outputTokens = usage.completion_tokens || this.tokenService.estimateTokens(content);
+                await this.tokenService.recordUsage({
+                    userId: 'siswa-koreksi',
+                    username: 'koreksi-essay',
+                    inputTokens,
+                    outputTokens,
+                    model: 'pecut-ai',
+                });
+            } catch (usageError) {
+                console.error('Failed to record token usage (essay grading):', usageError);
+            }
 
             return { score: Math.min(100, Math.max(0, score)), feedback };
         } catch (error) {

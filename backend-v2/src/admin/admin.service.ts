@@ -4,12 +4,14 @@ import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
 import { pilihFieldUser, pilihFieldSubject } from '../users/user-fields';
 import * as bcrypt from 'bcrypt';
+import { TokenService } from '../token/token.service';
 
 @Injectable()
 export class AdminService {
     constructor(
         private prisma: PrismaService,
         private configService: ConfigService,
+        private tokenService: TokenService,
     ) { }
 
     private asArray(v: any): any[] {
@@ -503,6 +505,22 @@ Format output JSON array (JANGAN tambahkan markdown/backticks):
                     id: randomUUID()
                 }));
 
+                // Record token usage (generate soal AI)
+                try {
+                    const usage = data.usage || {};
+                    const inputTokens = usage.prompt_tokens || this.tokenService.estimateTokens(prompt);
+                    const outputTokens = usage.completion_tokens || this.tokenService.estimateTokens(jsonText);
+                    await this.tokenService.recordUsage({
+                        userId: 'admin',
+                        username: 'admin',
+                        inputTokens,
+                        outputTokens,
+                        model: 'pecut-ai',
+                    });
+                } catch (usageError) {
+                    console.error('Failed to record token usage (generate questions):', usageError);
+                }
+
                 return { success: true, questions: questionsWithIds };
             } catch (error) {
                 lastError = error;
@@ -704,6 +722,22 @@ Format output JSON array (JANGAN tambahkan markdown/backticks):
                     ...q,
                     id: randomUUID()
                 }));
+
+                // Record token usage (generate soal AI)
+                try {
+                    const usage = data.usage || {};
+                    const inputTokens = usage.prompt_tokens || this.tokenService.estimateTokens(prompt);
+                    const outputTokens = usage.completion_tokens || this.tokenService.estimateTokens(jsonText);
+                    await this.tokenService.recordUsage({
+                        userId: 'admin',
+                        username: 'admin',
+                        inputTokens,
+                        outputTokens,
+                        model: 'pecut-ai',
+                    });
+                } catch (usageError) {
+                    console.error('Failed to record token usage (generate questions):', usageError);
+                }
 
                 return { success: true, questions: questionsWithIds };
             } catch (error) {

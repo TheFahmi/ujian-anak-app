@@ -54,12 +54,9 @@ export default function SettingsPage() {
       });
       const data = await res.json();
 
-      // Note: Backend returns the updated user object directly or { success: true, ... }?
-      // Checking UsersController: it returns this.usersService.updateAvatar(id, avatar) which returns User object.
-
-      if (data && data.id) {
+      if (res.ok && data && (data.success || data.id)) {
         // Update context and local storage
-        login({ ...user, avatar: avatarUrl }, token || '');
+        login({ ...user, avatar: data.avatar || avatarUrl }, token || '');
         addToast('Avatar berhasil diganti!', 'success');
         setShowAvatarModal(false);
       } else {

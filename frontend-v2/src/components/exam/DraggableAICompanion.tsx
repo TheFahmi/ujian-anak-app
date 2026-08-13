@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { SmartText } from '@/components/RichText';
 
 const MOTIVATIONAL_QUOTES = [
     "Kamu pasti bisa!", "Jangan menyerah!", "Fokus!", "Tarik napas dalam-dalam...", "Kamu hebat!",
@@ -111,8 +112,8 @@ export default function DraggableAICompanion({ friendId, message }: DraggableAIC
         >
             {/* Speech Bubble */}
             {displayMessage && (
-                <div className="bg-white rounded-2xl border-2 border-[#0f172a] py-2 px-3 mb-2 text-xs font-bold text-[#0f172a] shadow-[4px_4px_0px_#0f172a] max-w-[150px] text-center animate-bounceIn relative">
-                    {displayMessage}
+                <div className="bg-white rounded-2xl border-2 border-[#0f172a] py-2 px-3 mb-2 text-xs font-bold text-[#0f172a] shadow-[4px_4px_0px_#0f172a] max-w-[180px] text-center animate-bounceIn relative">
+                    <SmartText text={displayMessage} />
                     <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white border-r-2 border-b-2 border-[#0f172a] rotate-45"></div>
                 </div>
             )}

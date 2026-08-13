@@ -1,4 +1,5 @@
 import React from 'react';
+import { SmartText } from '@/components/RichText';
 
 /**
  * Simple markdown-like formatter for chat messages
@@ -125,7 +126,11 @@ export const FormattedMessage: React.FC<FormattedMessageProps> = ({ content, cla
                   </code>
                 );
               default:
-                return <span key={partIndex}>{part.content}</span>;
+                return (
+                  <span key={partIndex}>
+                    <SmartText text={part.content} />
+                  </span>
+                );
             }
           })}
         </React.Fragment>
