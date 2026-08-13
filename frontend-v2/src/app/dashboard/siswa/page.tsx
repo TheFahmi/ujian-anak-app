@@ -1,5 +1,5 @@
 "use client";
-import { Sparkles } from 'lucide-react';
+import { Sparkles, BookOpenCheck } from 'lucide-react';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -143,6 +143,27 @@ export default function StudentDashboardPage() {
                 avatarUrl={user?.avatar || "/images/avatar-student.png"}
             />
 
+            {/* Section: Belajar Adaptif */}
+            <div className="px-6 mt-2 mb-6">
+                <button
+                    onClick={() => router.push('/dashboard/siswa/adaptif')}
+                    className="w-full bg-gradient-to-r from-[#6c5ce7] to-[#a29bfe] text-white rounded-3xl p-5 text-left shadow-lg transition-all active:scale-[0.98]"
+                >
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="font-[var(--font-fredoka)] text-xl text-white m-0">Belajar Adaptif 🌟</p>
+                            <p className="text-sm text-white/80 mt-1">
+                                AI deteksi kemampuanmu, belajar dari dasar!
+                            </p>
+                        </div>
+                        <span className="material-symbols-outlined text-4xl text-white">school</span>
+                    </div>
+                    <div className="mt-3 inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-1.5 text-sm font-semibold">
+                        Mulai Sekarang →
+                    </div>
+                </button>
+            </div>
+
             {/* Section: Quiz Hari Ini */}
             <section className="mt-2">
                 <div className="px-6 mb-4 flex items-center justify-between">
@@ -157,8 +178,23 @@ export default function StudentDashboardPage() {
                                 <QuizCard key={subject.id} subject={subject} onStart={handleStartExam} />
                             ))
                         ) : (
-                            <div className="px-4 text-[#64748b] italic">
-                                Belum ada mata pelajaran untuk kelasmu.
+                            <div className="w-full flex flex-col items-center text-center gap-3 px-6 py-10 mr-4 rounded-3xl bg-white border-2 border-dashed border-[#c7d2fe]">
+                                <div className="w-16 h-16 rounded-full bg-[#eef2ff] flex items-center justify-center">
+                                    <BookOpenCheck className="w-8 h-8 text-[#6366f1]" strokeWidth={1.7} />
+                                </div>
+                                <p className="font-[var(--font-fredoka)] text-lg text-[#0f172a] m-0">
+                                    Belum ada quiz di sini
+                                </p>
+                                <p className="text-sm text-[#64748b] m-0 max-w-[15rem]">
+                                    Mata pelajaran untuk kelasmu belum disiapkan. Coba cek lagi nanti ya!
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={() => window.location.reload()}
+                                    className="mt-1 px-5 py-2 rounded-full bg-[#6366f1] text-white text-sm font-semibold active:scale-95 transition-transform"
+                                >
+                                    Muat ulang
+                                </button>
                             </div>
                         )}
                     </div>

@@ -156,3 +156,44 @@ model TokenUsage {
 
   @@index([timestamp])
 }
+
+model SkillNode {
+  id          String   @id @default(uuid())
+  subjectId   String
+  // level: 0=TK, 1=Kelas 1, 2=Kelas 2, ... 6=Kelas 6
+  level       Int      @default(0)
+  // urutan skill dalam level (untuk skill tree)
+  urutan      Int      @default(0)
+  nama        String
+  // deskripsi singkat utk prompt AI & UI
+  deskripsi   String   @default("")
+  // prasyarat (id SkillNode lain) — untuk jalur naik
+  prasyarat   String[] @default([])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([subjectId])
+  @@index([subjectId, level])
+}
+
+model StudentProgress {
+  id          String   @id @default(uuid())
+  userId      String
+  subjectId   String
+  // level aktual siswa per mapel (0=TK ... 6=Kelas 6)
+  level       Int      @default(0)
+  // skill yang sudah dikuasai (id SkillNode)
+  mastered    String[] @default([])
+  // topik/skill yang sedang dipelajari
+  currentSkillId String @default("")
+  // bintang (1 per skill dikuasai)
+  stars       Int      @default(0)
+  // riwayat assessment ringkas: [{date, level, skor}]
+  history     Json     @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, subjectId])
+  @@index([userId])
+  @@index([subjectId])
+}
