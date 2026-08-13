@@ -331,6 +331,43 @@ export class AdminService {
         return { success: true, message: 'User deleted' };
     }
 
+    // Guru pending approval
+    async getGuruPending() {
+        const users = await this.prisma.user.findMany({
+            where: { role: 'guru', status_approval: 'pending' },
+            orderBy: { createdAt: 'asc' },
+        });
+        return users.map(u => ({
+            id: u.id,
+            username: u.username,
+            email: u.email,
+            kelas_assign: u.kelas_assign,
+            mata_pelajaran: u.mata_pelajaran,
+            createdAt: u.createdAt,
+        }));
+    }
+
+    // Approve/reject guru
+    async setGuruApproval(id: string, status: string) {
+        const valid = ['active', 'rejected'];
+        if (!valid.includes(status)) {
+            throw new BadRequestException('Status tidak valid');
+        }
+        const guru = await this.prisma.user.findUnique({ where: { id } });
+        if (!guru || guru.role !== 'guru') {
+            throw new NotFoundException('Guru tidak ditemukan');
+        }
+        const updated = await this.prisma.user.update({
+            where: { id },
+            data: { status_approval: status },
+        });
+        return {
+            success: true,
+            message: status === 'active' ? 'Guru disetujui!' : 'Pendaftaran guru ditolak.',
+            user: { id: updated.id, username: updated.username, status_approval: updated.status_approval },
+        };
+    }
+
     // Generate questions with AI
     async generateQuestions(topic: string, type: string, count: number) {
         const apiUrl = this.configService.get<string>('PECUT_AI_URL') || 'https://llm.mfah.me/v1/chat/completions';

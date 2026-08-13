@@ -25,6 +25,7 @@ model User {
   // Kelas yang di-assign ke guru (bisa lebih dari satu). Guru hanya lihat
   // siswa & hasil dari kelas ini. Kosong = tidak terbatas kelas.
   kelas_assign       String[] @default([])
+  status_approval   String   @default("active")
   avatar             String   @default("/images/profil-avatar-dino.png")
   children           String[] @default([])
   createdAt          DateTime @default(now())

@@ -122,6 +122,18 @@ export class AdminController {
         return this.adminService.updateUser(id, user);
     }
 
+    // Daftar guru pending approval
+    @Get('api/admin/guru-pending')
+    async getGuruPending() {
+        return this.adminService.getGuruPending();
+    }
+
+    // Approve/reject guru (status: active | rejected)
+    @Put('api/admin/guru/:id/approval')
+    async setGuruApproval(@Param('id') id: string, @Body() body: { status: string }) {
+        return this.adminService.setGuruApproval(id, body.status);
+    }
+
     @Delete('api/admin/users/:id')
     async deleteUserApi(@Param('id') id: string) {
         return this.adminService.deleteUser(id);

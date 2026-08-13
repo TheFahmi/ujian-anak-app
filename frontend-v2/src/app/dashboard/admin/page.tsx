@@ -12,6 +12,7 @@ import AdminMobileNav from '@/components/admin/AdminMobileNav';
 import SubjectForm from '@/components/admin/SubjectForm';
 import QuestionEditor from '@/components/admin/QuestionEditor';
 import UserForm from '@/components/admin/UserForm';
+import GuruPendingPanel from '@/components/admin/GuruPendingPanel';
 import ResultsTable from '@/components/admin/ResultsTable';
 import JSONImport from '@/components/admin/JSONImport';
 import TokenStatsCards from '@/components/admin/TokenStatsCards';
@@ -425,6 +426,7 @@ function AdminDashboardContent() {
             case 'import': return 'Import Mata Pelajaran';
             case 'results': return 'Hasil Ujian';
             case 'token-usage': return 'Token AI Usage';
+            case 'guru-pending': return 'Persetujuan Guru';
             default: return 'Admin Panel';
         }
     };
@@ -733,6 +735,10 @@ function AdminDashboardContent() {
                             </>
                         )}
                     </div>
+                )}
+
+                {activeTab === 'guru-pending' && (
+                    <GuruPendingPanel />
                 )}
             </main>
 

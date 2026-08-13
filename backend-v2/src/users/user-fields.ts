@@ -3,7 +3,7 @@ export function pilihFieldUser(src: any) {
     const out: any = {};
     for (const k of [
         'id', 'username', 'password', 'email', 'emailTerverifikasi',
-        'role', 'kelas', 'mata_pelajaran', 'kelas_assign', 'avatar', 'children',
+        'role', 'kelas', 'mata_pelajaran', 'kelas_assign', 'avatar', 'children', 'status_approval',
     ]) {
         if (src[k] !== undefined) out[k] = src[k];
     }
