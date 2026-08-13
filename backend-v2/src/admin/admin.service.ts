@@ -1,77 +1,66 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
-import { User, UserDocument } from '../schemas/user.schema';
-import { Subject, SubjectDocument } from '../schemas/subject.schema';
-import { Result, ResultDocument } from '../schemas/result.schema';
-import { ShopItem, ShopItemDocument } from '../schemas/shop-item.schema';
+import { pilihFieldUser, pilihFieldSubject } from '../users/user-fields';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AdminService {
     constructor(
-        @InjectModel(User.name) private userModel: Model<UserDocument>,
-        @InjectModel(Subject.name) private subjectModel: Model<SubjectDocument>,
-        @InjectModel(Result.name) private resultModel: Model<ResultDocument>,
-        @InjectModel(ShopItem.name) private shopItemModel: Model<ShopItemDocument>,
+        private prisma: PrismaService,
         private configService: ConfigService,
     ) { }
 
+    private asArray(v: any): any[] {
+        return Array.isArray(v) ? v : [];
+    }
+
     async getDashboardData() {
         const [users, subjects, results] = await Promise.all([
-            this.userModel.find().exec(),
-            this.subjectModel.find().exec(),
-            this.resultModel.find().sort({ date: -1 }).limit(50).exec(),
+            this.prisma.user.findMany(),
+            this.prisma.subject.findMany(),
+            this.prisma.result.findMany({ orderBy: { date: 'desc' }, take: 50 }),
         ]);
 
         return {
             pengguna: users,
             mata_pelajaran: subjects,
-            hasil_ujian: results,
+            hasil_ujian: results.map((r) => ({ ...r, _id: r.id })),
         };
     }
 
     async getSubjects() {
-        return this.subjectModel.find().exec();
+        return this.prisma.subject.findMany();
     }
 
     async getUsers() {
-        return this.userModel.find().exec();
+        return this.prisma.user.findMany();
     }
 
     async getResults() {
-        return this.resultModel.find().sort({ date: -1 }).limit(50).exec();
+        const results = await this.prisma.result.findMany({ orderBy: { date: 'desc' }, take: 50 });
+        return results.map((r) => ({ ...r, _id: r.id }));
     }
 
     async updateData(data: any) {
         if (data.mata_pelajaran) {
-            // Bulk update or replace subjects?
-            // The frontend sends the whole array. This is risky for concurrency but okay for MVP.
-            // Better to iterate and update/create.
             for (const sub of data.mata_pelajaran) {
-                await this.subjectModel.findOneAndUpdate({ id: sub.id }, sub, { upsert: true, new: true }).exec();
+                const isi = pilihFieldSubject(sub);
+                await this.prisma.subject.upsert({
+                    where: { id: sub.id },
+                    create: { ...isi, id: sub.id || randomUUID() },
+                    update: isi,
+                });
             }
 
-            // Check for deletions? The frontend sends the "updatedSubjects" array which implies the desired state.
-            // If we want to support deletion via this method, we'd need to delete IDs not in the list.
-            // For now, let's assume the frontend handles deletions via a separate call or we just update what's sent.
-            // Actually, the frontend `handleDeleteSubject` sends the filtered array.
-            // So we should probably sync the DB to match the array.
             const incomingIds = data.mata_pelajaran.map((s: any) => s.id);
-            await this.subjectModel.deleteMany({ id: { $nin: incomingIds } }).exec();
+            await this.prisma.subject.deleteMany({ where: { id: { notIn: incomingIds } } });
         }
 
         if (data.pengguna) {
             for (const user of data.pengguna) {
-                // If password is plain text (not hashed), hash it. 
-                // But wait, we don't want to re-hash existing hashes.
-                // Simple check: if it looks like a bcrypt hash, skip.
-                // Or better: only update password if it's changed. 
-                // The frontend sends the whole object.
-
-                const existing = await this.userModel.findOne({ id: user.id }).exec();
+                const existing = await this.prisma.user.findUnique({ where: { id: user.id } });
                 let passwordToSave = user.password;
 
                 if (!existing || (user.password && existing && user.password !== existing.password)) {
@@ -82,33 +71,35 @@ export class AdminService {
                     }
                 }
 
-                await this.userModel.findOneAndUpdate(
-                    { id: user.id },
-                    { ...user, password: passwordToSave },
-                    { upsert: true, new: true }
-                ).exec();
+                const isi = { ...pilihFieldUser(user), password: passwordToSave };
+                await this.prisma.user.upsert({
+                    where: { id: user.id },
+                    create: { ...isi, id: user.id || randomUUID(), role: user.role || 'siswa' },
+                    update: isi,
+                });
             }
             const incomingIds = data.pengguna.map((u: any) => u.id);
-            await this.userModel.deleteMany({ id: { $nin: incomingIds } }).exec();
+            await this.prisma.user.deleteMany({ where: { id: { notIn: incomingIds } } });
         }
 
         return { success: true, message: 'Data updated successfully' };
     }
 
     // Add questions to a subject (original backend logic)
-    async addQuestions(subjectId: number, questions: any[]) {
+    async addQuestions(subjectId: string, questions: any[]) {
         if (!Array.isArray(questions)) {
             throw new BadRequestException('Questions must be an array');
         }
 
-        const subject = await this.subjectModel.findOne({ id: subjectId }).exec();
+        const subject = await this.prisma.subject.findUnique({ where: { id: subjectId } });
         if (!subject) {
             throw new NotFoundException('Subject not found');
         }
+        const soal = this.asArray(subject.soal);
 
         // Get the current max question ID
-        const maxId = subject.soal.length > 0
-            ? Math.max(...subject.soal.map(q => q.id))
+        const maxId = soal.length > 0
+            ? Math.max(...soal.map(q => q.id))
             : 0;
 
         // Process new questions
@@ -131,13 +122,15 @@ export class AdminService {
         });
 
         // Add new questions to existing questions
-        subject.soal = [...subject.soal, ...processedQuestions];
-        await subject.save();
+        const updated = await this.prisma.subject.update({
+            where: { id: subjectId },
+            data: { soal: [...soal, ...processedQuestions] },
+        });
 
         return {
             success: true,
             message: `Berhasil menambahkan ${processedQuestions.length} soal ke ${subject.nama}!`,
-            subject: subject
+            subject: updated
         };
     }
 
@@ -145,29 +138,26 @@ export class AdminService {
     async addOrUpdateShopItem(itemData: any) {
         const { id, name, description, cost, type, icon, rarity } = itemData;
 
-        let item = await this.shopItemModel.findOne({ id }).exec();
-        if (item) {
-            // Update
-            item.name = name;
-            item.description = description;
-            item.cost = cost;
-            item.type = type;
-            item.icon = icon;
-            item.rarity = rarity;
-            await item.save();
-        } else {
-            // Create
-            item = new this.shopItemModel({ id, name, description, cost, type, icon, rarity });
-            await item.save();
-        }
+        const item = await this.prisma.shopItem.upsert({
+            where: { id },
+            create: { id, name, description, cost, type, icon, rarity },
+            update: { name, description, cost, type, icon, rarity },
+        });
 
         return { success: true, item };
     }
 
     // Delete shop item (original backend logic)
     async deleteShopItem(id: string) {
-        await this.shopItemModel.deleteOne({ id }).exec();
+        await this.prisma.shopItem.deleteMany({ where: { id } });
         return { success: true };
+    }
+
+    // Assign id otomatis (UUID v4) lalu simpan; user tidak perlu isi ID manual
+    private async saveSubjectWithAutoId(payload: any) {
+        return this.prisma.subject.create({
+            data: { ...pilihFieldSubject(payload), id: payload.id || randomUUID() },
+        });
     }
 
     // NEW: Import multiple subjects (only new data, not replace all)
@@ -184,7 +174,6 @@ export class AdminService {
 
             const subjectToSave = {
                 ...sub,
-                id: sub.id || Date.now() + Math.floor(Math.random() * 1000),
                 kelas: sub.kelas || 'Umum',
                 soal: sub.soal.map((q: any, idx: number) => {
                     const baseQ: any = {
@@ -202,7 +191,7 @@ export class AdminService {
                 })
             };
 
-            const saved = await this.subjectModel.create(subjectToSave);
+            const saved = await this.saveSubjectWithAutoId(subjectToSave);
             importedSubjects.push(saved);
         }
 
@@ -221,7 +210,6 @@ export class AdminService {
 
         const subjectToSave = {
             ...subject,
-            id: subject.id || Date.now() + Math.floor(Math.random() * 1000),
             kelas: subject.kelas || 'Umum',
             soal: subject.soal.map((q: any, idx: number) => {
                 const baseQ: any = {
@@ -239,22 +227,22 @@ export class AdminService {
             })
         };
 
-        const saved = await this.subjectModel.create(subjectToSave);
+        const saved = await this.saveSubjectWithAutoId(subjectToSave);
         return { success: true, subject: saved };
     }
 
     // NEW: Delete single subject by ID
-    async deleteSubject(id: number) {
-        const result = await this.subjectModel.deleteOne({ id }).exec();
-        if (result.deletedCount === 0) {
+    async deleteSubject(id: string) {
+        const result = await this.prisma.subject.deleteMany({ where: { id } });
+        if (result.count === 0) {
             throw new NotFoundException('Subject not found');
         }
         return { success: true, message: 'Subject deleted' };
     }
 
     // NEW: Update single subject
-    async updateSubject(id: number, subject: any) {
-        const existing = await this.subjectModel.findOne({ id }).exec();
+    async updateSubject(id: string, subject: any) {
+        const existing = await this.prisma.subject.findUnique({ where: { id } });
         if (!existing) {
             throw new NotFoundException('Subject not found');
         }
@@ -277,9 +265,9 @@ export class AdminService {
             });
         }
 
-        const updated = await this.subjectModel
-            .findOneAndUpdate({ id }, { ...subject, id }, { new: true })
-            .exec();
+        const isi = pilihFieldSubject(subject);
+        delete isi.id;
+        const updated = await this.prisma.subject.update({ where: { id }, data: isi });
         return { success: true, subject: updated };
     }
 
@@ -292,27 +280,25 @@ export class AdminService {
         }
 
         // Generate ID if not provided
-        const id =
-            user.id ||
-            (crypto.randomUUID ? crypto.randomUUID() : `user-${Date.now()}`);
+        const id = user.id || randomUUID();
 
         // Hash password
         const hashedPassword = await bcrypt.hash(user.password, 10);
 
-        const userToSave = {
-            ...user,
-            id,
-            password: hashedPassword,
-            role: user.role || 'siswa',
-        };
-
-        const saved = await this.userModel.create(userToSave);
+        const saved = await this.prisma.user.create({
+            data: {
+                ...pilihFieldUser(user),
+                id,
+                password: hashedPassword,
+                role: user.role || 'siswa',
+            },
+        });
         return { success: true, user: saved };
     }
 
     // Update single user
     async updateUser(id: string, user: any) {
-        const existing = await this.userModel.findOne({ id }).exec();
+        const existing = await this.prisma.user.findUnique({ where: { id } });
         if (!existing) {
             throw new NotFoundException('User not found');
         }
@@ -328,20 +314,16 @@ export class AdminService {
             }
         }
 
-        const updated = await this.userModel
-            .findOneAndUpdate(
-                { id },
-                { ...user, id, password: passwordToSave },
-                { new: true },
-            )
-            .exec();
+        const isi = { ...pilihFieldUser(user), password: passwordToSave };
+        delete isi.id;
+        const updated = await this.prisma.user.update({ where: { id }, data: isi });
         return { success: true, user: updated };
     }
 
     // Delete single user
     async deleteUser(id: string) {
-        const result = await this.userModel.deleteOne({ id }).exec();
-        if (result.deletedCount === 0) {
+        const result = await this.prisma.user.deleteMany({ where: { id } });
+        if (result.count === 0) {
             throw new NotFoundException('User not found');
         }
         return { success: true, message: 'User deleted' };
@@ -359,6 +341,8 @@ export class AdminService {
         const promptMap = {
             pilihan_ganda: `Generate ${count} soal pilihan ganda (multiple choice) untuk tingkat SD tentang: ${topic}
 
+Untuk SETIAP soal, tulis penjelasan singkat (1-2 kalimat) yang menjelaskan KENAPA jawaban yang benar itu benar — penjelasan ini akan ditampilkan ke siswa saat mereka menjawab salah.
+
 Format output JSON array (JANGAN tambahkan markdown/backticks):
 [
   {
@@ -370,16 +354,20 @@ Format output JSON array (JANGAN tambahkan markdown/backticks):
       {"id": "D", "text": "pilihan D"}
     ],
     "jawaban_benar": "A",
+    "penjelasan": "penjelasan singkat kenapa jawaban A benar (1-2 kalimat, bahasa anak SD)",
     "tipe": "pilihan_ganda"
   }
 ]`,
             isian: `Generate ${count} soal essay untuk tingkat SD tentang: ${topic}
+
+Untuk SETIAP soal, tulis kunci jawaban (jawaban referensi yang benar) — dipakai AI sebagai acuan menilai jawaban siswa.
 
 Format output JSON array (JANGAN tambahkan markdown/backticks):
 [
   {
     "pertanyaan": "teks soal",
     "rubrik_penilaian": "kriteria penilaian detail",
+    "kunci_jawaban": "jawaban referensi yang benar dan lengkap",
     "tipe": "isian"
   }
 ]`
@@ -387,72 +375,101 @@ Format output JSON array (JANGAN tambahkan markdown/backticks):
 
         const prompt = promptMap[type] || promptMap.pilihan_ganda;
 
-        try {
+        // Upstream (llm.mfah.me) intermittently answers HTTP 200 with an
+        // {"error": ...} body ("Worker local total request limit reached")
+        // and its latency varies (~3s..90s). Retry, but stay inside a total
+        // budget: Cloudflare drops the origin response at ~100s (error 524).
+        // ponytail: fire-and-wait with a 90s budget; move to a job queue +
+        // polling endpoint if generation regularly needs longer than that.
+        const BUDGET_MS = 90_000;
+        const deadline = Date.now() + BUDGET_MS;
+        const MAX_ATTEMPTS = 3;
+        let lastError: unknown;
+
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            const remaining = deadline - Date.now();
+            if (remaining < 5000) break;
+
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 120000);
+            const timeoutId = setTimeout(() => controller.abort(), remaining);
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiToken}`
+                    },
+                    body: JSON.stringify({
+                        model: 'pecut-ai',
+                        messages: [
+                            { role: 'system', content: 'Kamu adalah guru SD yang membuat soal. Output HANYA JSON array, tanpa markdown atau penjelasan tambahan.' },
+                            { role: 'user', content: prompt }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 3000
+                    }),
+                    signal: controller.signal,
+                });
 
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiToken}`
-                },
-                body: JSON.stringify({
-                    model: 'pecut-ai',
-                    messages: [
-                        { role: 'system', content: 'Kamu adalah guru SD yang membuat soal. Output HANYA JSON array, tanpa markdown atau penjelasan tambahan.' },
-                        { role: 'user', content: prompt }
-                    ],
-                    temperature: 0.7,
-                    max_tokens: 3000
-                }),
-                signal: controller.signal,
-            });
+                if (!response.ok) {
+                    console.error('Pecut AI error:', response.status, await response.text());
+                    throw new Error(`Pecut AI API error: ${response.status}`);
+                }
 
-            clearTimeout(timeoutId);
+                const rawText = await response.text();
+                console.log('Raw AI response length:', rawText.length);
 
-            if (!response.ok) {
-                console.error('Pecut AI error:', response.status, await response.text());
-                throw new Error(`Pecut AI API error: ${response.status}`);
+                if (!rawText || rawText.trim().length === 0) {
+                    throw new Error('Empty AI response');
+                }
+
+                // Strip data: [DONE] suffix
+                const responseText = rawText.replace(/data:\s*\[DONE\]\s*$/, '').trim();
+
+                const data = JSON.parse(responseText);
+
+                // Upstream error delivered with a 200 status code.
+                if (data.error) {
+                    throw new Error(`Pecut AI upstream error: ${data.error.message || JSON.stringify(data.error)}`);
+                }
+
+                const content = data.choices?.[0]?.message?.content;
+
+                if (!content) {
+                    throw new Error('Empty AI response');
+                }
+
+                // Strip markdown code blocks if present
+                const jsonText = content.trim()
+                    .replace(/^```json?\s*/i, '')
+                    .replace(/```\s*$/, '')
+                    .trim();
+
+                const questions = JSON.parse(jsonText);
+
+                if (!Array.isArray(questions)) {
+                    throw new Error('Invalid response format');
+                }
+
+                // Assign unique IDs
+                const questionsWithIds = questions.map((q) => ({
+                    ...q,
+                    id: randomUUID()
+                }));
+
+                return { success: true, questions: questionsWithIds };
+            } catch (error) {
+                lastError = error;
+                console.error(`Generate questions error (attempt ${attempt}/${MAX_ATTEMPTS}):`, error);
+                if (attempt < MAX_ATTEMPTS) {
+                    await new Promise((r) => setTimeout(r, 2000 * attempt));
+                }
+            } finally {
+                clearTimeout(timeoutId);
             }
-
-            const rawText = await response.text();
-            console.log('Raw AI response length:', rawText.length);
-            
-            if (!rawText || rawText.trim().length === 0) {
-                throw new Error('Empty AI response');
-            }
-
-            // Strip data: [DONE] suffix
-            let responseText = rawText.replace(/data:\s*\[DONE\]\s*$/, '').trim();
-            
-            const data = JSON.parse(responseText);
-            const content = data.choices?.[0]?.message?.content;
-
-            if (!content) {
-                throw new Error('Empty AI response');
-            }
-
-            // Strip markdown code blocks if present
-            let jsonText = content.trim();
-            jsonText = jsonText.replace(/^```json?\s*/i, '').replace(/```\s*$/, '').trim();
-
-            const questions = JSON.parse(jsonText);
-
-            if (!Array.isArray(questions)) {
-                throw new Error('Invalid response format');
-            }
-
-            // Assign unique IDs
-            const questionsWithIds = questions.map((q) => ({
-                ...q,
-                id: randomUUID()
-            }));
-
-            return { success: true, questions: questionsWithIds };
-        } catch (error) {
-            console.error('Generate questions error:', error);
-            throw new BadRequestException('Gagal generate soal. Coba lagi.');
         }
+
+        console.error('Generate questions failed after retries:', lastError);
+        throw new BadRequestException('Gagal generate soal. Coba lagi.');
     }
 }

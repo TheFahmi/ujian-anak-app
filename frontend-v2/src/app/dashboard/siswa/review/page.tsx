@@ -206,6 +206,7 @@ function ReviewPageContent() {
 
     const getAIExplanation = () => {
         if (currentQuestion.tipe === 'isian' && questionResult.aiFeedback) return questionResult.aiFeedback;
+        if (questionResult.penjelasan) return questionResult.penjelasan;
         if (currentQuestion.penjelasan) return currentQuestion.penjelasan;
         return questionResult.correct
             ? `Bagus! Kamu menjawab dengan benar.`
@@ -355,6 +356,15 @@ function ReviewPageContent() {
                                         <p className="text-green-800 text-sm font-bold mb-2 uppercase tracking-wide">Jawaban yang Benar:</p>
                                         {getCorrectAnswerText() && (
                                             <p className="text-[#0f172a] text-base font-medium leading-relaxed mb-4">{getCorrectAnswerText()}</p>
+                                        )}
+                                        {!questionResult.correct && getAIExplanation() && currentQuestion.tipe !== 'isian' && (
+                                            <div className="mt-3 pt-3 border-t-2 border-green-200/50">
+                                                <p className="text-blue-600 text-sm font-bold mb-2 flex items-center gap-2">
+                                                    <span className="material-symbols-outlined text-lg">lightbulb</span>
+                                                    Kenapa jawabanmu salah?
+                                                </p>
+                                                <p className="text-[#0f172a] text-sm leading-relaxed whitespace-pre-wrap">{getAIExplanation()}</p>
+                                            </div>
                                         )}
                                         {questionResult.aiFeedback && (
                                             <div className="mt-3 pt-3 border-t-2 border-green-200/50">

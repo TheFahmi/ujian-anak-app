@@ -1,10 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Subject, SubjectDocument } from '../schemas/subject.schema';
-import { ExamSession, ExamSessionDocument } from '../schemas/exam-session.schema';
-import { Result, ResultDocument } from '../schemas/result.schema';
-import { Reward, RewardDocument } from '../schemas/reward.schema';
+import { PrismaService } from '../prisma/prisma.service';
 import * as CryptoJS from 'crypto-js';
 import { ConfigService } from '@nestjs/config';
 
@@ -35,10 +30,7 @@ const BADGES = [
 @Injectable()
 export class ExamService {
     constructor(
-        @InjectModel(Subject.name) private subjectModel: Model<SubjectDocument>,
-        @InjectModel(ExamSession.name) private sessionModel: Model<ExamSessionDocument>,
-        @InjectModel(Result.name) private resultModel: Model<ResultDocument>,
-        @InjectModel(Reward.name) private rewardModel: Model<RewardDocument>,
+        private prisma: PrismaService,
         private configService: ConfigService,
     ) { }
 
@@ -48,18 +40,25 @@ export class ExamService {
         return CryptoJS.AES.encrypt(JSON.stringify(data), key).toString();
     }
 
+    // `soal` / `questions` / `results` disimpan sebagai jsonb, jadi Prisma
+    // mengembalikannya bertipe JsonValue. Helper ini menormalkan ke array biasa.
+    private asArray(v: any): any[] {
+        return Array.isArray(v) ? v : [];
+    }
+
     async getQuestions(subjectId: string, userId: string, isReview: boolean = false) {
-        // Convert subjectId to number
-        const subjectIdNum = parseInt(subjectId, 10);
-        if (isNaN(subjectIdNum)) {
+        // subjectId adalah UUID v4 (string), jangan di-parseInt
+        const subjectIdNum = subjectId;
+        if (!subjectIdNum) {
             throw new BadRequestException('Invalid subjectId');
         }
 
         // 1. Check if subject exists
-        const subject = await this.subjectModel.findOne({ id: subjectIdNum }).exec();
+        const subject = await this.prisma.subject.findUnique({ where: { id: subjectIdNum } });
         if (!subject) throw new NotFoundException('Subject not found');
 
-        if (!subject.soal || subject.soal.length === 0) {
+        const soal = this.asArray(subject.soal);
+        if (soal.length === 0) {
             throw new NotFoundException('No questions found for this subject');
         }
 
@@ -67,23 +66,27 @@ export class ExamService {
         let remainingSeconds = subject.durasi ? subject.durasi * 60 : 3600;
 
         // Separate PG and Essay questions - prepare all questions without jawaban_benar
-        const allQuestions = subject.soal.map(q => ({
+        const allQuestions = soal.map(q => ({
             id: q.id,
             pertanyaan: q.pertanyaan,
             tipe: q.tipe || 'pilihan_ganda',
             pilihan: q.pilihan,
-            rubrik_penilaian: q.rubrik_penilaian
+            rubrik_penilaian: q.rubrik_penilaian,
+            penjelasan: q.penjelasan,
+            kunci_jawaban: q.kunci_jawaban
         }));
 
         let questions: any[];
-        let session: ExamSessionDocument | null = null;
+        let session: any = null;
 
         if (isReview) {
             // For review, return all questions without limiting or shuffling
             questions = allQuestions;
         } else if (userId) {
             // For exam, check if session exists and has saved questions
-            session = await this.sessionModel.findOne({ userId, subjectId: subjectIdNum }).exec();
+            session = await this.prisma.examSession.findUnique({
+                where: { userId_subjectId: { userId, subjectId: subjectIdNum } },
+            });
 
             if (!session) {
                 // Start new session - shuffle and save questions
@@ -104,18 +107,20 @@ export class ExamService {
                 questions = [...finalPg, ...shuffledEssay];
 
                 // Save session with questions
-                session = new this.sessionModel({
-                    userId,
-                    subjectId: subjectIdNum,
-                    startTime: new Date(),
-                    questions: questions,
-                    isLocked: false,
+                session = await this.prisma.examSession.create({
+                    data: {
+                        userId,
+                        subjectId: subjectIdNum,
+                        startTime: new Date(),
+                        questions,
+                        isLocked: false,
+                    },
                 });
-                await session.save();
             } else {
                 // Session exists - use saved questions to maintain consistency
-                questions = session.questions && session.questions.length > 0
-                    ? session.questions.map(q => ({
+                const tersimpan = this.asArray(session.questions);
+                questions = tersimpan.length > 0
+                    ? tersimpan.map(q => ({
                         id: q.id,
                         pertanyaan: q.pertanyaan,
                         tipe: q.tipe || 'pilihan_ganda',
@@ -159,20 +164,24 @@ export class ExamService {
     }
 
     async lockExam(userId: string, subjectId: string) {
-        const subjectIdNum = parseInt(subjectId, 10);
-        if (isNaN(subjectIdNum)) {
+        const subjectIdNum = subjectId;
+        if (!subjectIdNum) {
             throw new BadRequestException('Invalid subjectId');
         }
-        return this.sessionModel.findOneAndUpdate(
-            { userId, subjectId: subjectIdNum },
-            { isLocked: true },
-            { new: true }
-        ).exec();
+        // findOneAndUpdate Mongo tidak error kalau dokumen tidak ada; updateMany
+        // memberi perilaku sama (0 baris terpengaruh) tanpa melempar.
+        await this.prisma.examSession.updateMany({
+            where: { userId, subjectId: subjectIdNum },
+            data: { isLocked: true },
+        });
+        return this.prisma.examSession.findUnique({
+            where: { userId_subjectId: { userId, subjectId: subjectIdNum } },
+        });
     }
 
     async unlockExam(userId: string, subjectId: string, password: string) {
-        const subjectIdNum = parseInt(subjectId, 10);
-        if (isNaN(subjectIdNum)) {
+        const subjectIdNum = subjectId;
+        if (!subjectIdNum) {
             throw new BadRequestException('Invalid subjectId');
         }
 
@@ -184,45 +193,51 @@ export class ExamService {
             return { success: false, message: 'Password salah!' };
         }
 
-        await this.sessionModel.findOneAndUpdate(
-            { userId, subjectId: subjectIdNum },
-            { isLocked: false }
-        ).exec();
+        await this.prisma.examSession.updateMany({
+            where: { userId, subjectId: subjectIdNum },
+            data: { isLocked: false },
+        });
 
         return { success: true };
     }
 
     async submitExam(userId: string, subjectId: string, answers: any, cheatCount: number = 0) {
-        const subjectIdNum = parseInt(subjectId, 10);
-        if (isNaN(subjectIdNum)) {
+        const subjectIdNum = subjectId;
+        if (!subjectIdNum) {
             throw new BadRequestException('Invalid subjectId');
         }
 
-        const subject = await this.subjectModel.findOne({ id: subjectIdNum }).exec();
+        const subject = await this.prisma.subject.findUnique({ where: { id: subjectIdNum } });
         if (!subject) throw new NotFoundException('Subject not found');
+        const soal = this.asArray(subject.soal);
 
         // Get questions from ExamSession before deleting it
-        const session = await this.sessionModel.findOne({ userId, subjectId: subjectIdNum }).exec();
+        const session = await this.prisma.examSession.findUnique({
+            where: { userId_subjectId: { userId, subjectId: subjectIdNum } },
+        });
+        const sessionQuestions = session ? this.asArray(session.questions) : [];
         let examQuestions: any[] = [];
 
-        if (session && session.questions && session.questions.length > 0) {
+        if (sessionQuestions.length > 0) {
             // Use questions from session (the actual questions user saw during exam)
             // Re-attach the correct answers from the database
-            examQuestions = session.questions.map(sessionQ => {
-                const originalQ = subject.soal.find(sq => sq.id === sessionQ.id);
+            examQuestions = sessionQuestions.map(sessionQ => {
+                const originalQ = soal.find(sq => sq.id === sessionQ.id);
                 return {
                     id: sessionQ.id,
                     pertanyaan: sessionQ.pertanyaan,
                     tipe: sessionQ.tipe || 'pilihan_ganda',
                     pilihan: sessionQ.pilihan || [],
                     jawaban_benar: originalQ ? originalQ.jawaban_benar : null,
-                    rubrik_penilaian: originalQ ? originalQ.rubrik_penilaian : sessionQ.rubrik_penilaian
+                    rubrik_penilaian: originalQ ? originalQ.rubrik_penilaian : sessionQ.rubrik_penilaian,
+                    penjelasan: originalQ ? originalQ.penjelasan : sessionQ.penjelasan,
+                    kunci_jawaban: originalQ ? originalQ.kunci_jawaban : sessionQ.kunci_jawaban
                 };
             });
         } else {
             // Fallback: get questions from subject based on answered IDs
             const answeredQuestionIds = Object.keys(answers).map(id => parseInt(id));
-            examQuestions = subject.soal
+            examQuestions = soal
                 .filter(q => answeredQuestionIds.includes(q.id))
                 .map(q => ({
                     id: q.id,
@@ -230,7 +245,9 @@ export class ExamService {
                     tipe: q.tipe || 'pilihan_ganda',
                     pilihan: q.pilihan || [],
                     jawaban_benar: q.jawaban_benar,
-                    rubrik_penilaian: q.rubrik_penilaian || ''
+                    rubrik_penilaian: q.rubrik_penilaian || '',
+                    penjelasan: q.penjelasan,
+                    kunci_jawaban: q.kunci_jawaban
                 }));
         }
 
@@ -247,27 +264,39 @@ export class ExamService {
         const mcQuestions = answeredQuestions.filter(q => (q.tipe || 'pilihan_ganda') !== 'isian');
         const essayQuestions = answeredQuestions.filter(q => (q.tipe || 'pilihan_ganda') === 'isian');
 
-        // Grade MC questions in parallel (no API calls needed)
-        const mcResults = mcQuestions.map(q => {
+        // Grade MC questions (no API calls needed for scoring; AI only when
+        // a wrong answer has no manual penjelasan)
+        const mcResults: any[] = [];
+        for (const q of mcQuestions) {
             const userAnswer = answers[q.id];
             const isCorrect = userAnswer === q.jawaban_benar;
             const questionScore = isCorrect ? (100 / totalQuestions) : 0;
-            return {
+            let penjelasan = q.penjelasan || null;
+            if (!isCorrect && !penjelasan) {
+                try {
+                    penjelasan = await this.generatePGExplanation(q.pertanyaan, userAnswer, q.jawaban_benar, q.pilihan);
+                } catch (err) {
+                    console.error('PG explanation fallback error:', err);
+                    penjelasan = null;
+                }
+            }
+            mcResults.push({
                 id: q.id,
                 tipe: 'pilihan_ganda',
                 correct: isCorrect,
                 userAnswer,
                 correctAnswer: q.jawaban_benar,
+                penjelasan,
                 scoreContribution: questionScore
-            };
-        });
+            });
+        }
 
         // Grade essay questions SEQUENTIALLY to avoid rate limits
         const essayResults: any[] = [];
         for (const q of essayQuestions) {
             const userAnswer = answers[q.id];
             try {
-                const aiResult = await this.gradeEssayWithAI(q.pertanyaan, userAnswer, q.rubrik_penilaian);
+                const aiResult = await this.gradeEssayWithAI(q.pertanyaan, userAnswer, q.rubrik_penilaian, q.kunci_jawaban);
                 const aiScore = aiResult.score;
                 const aiFeedback = aiResult.feedback
                     ? `${aiResult.feedback}\n\nNilai: ${Math.round(aiScore)}/100`
@@ -281,6 +310,7 @@ export class ExamService {
                     userAnswer,
                     aiScore: Math.round(aiScore),
                     aiFeedback: aiFeedback,
+                    kunciJawaban: q.kunci_jawaban || null,
                     scoreContribution: questionScore
                 });
             } catch (err) {
@@ -311,10 +341,10 @@ export class ExamService {
         const finalScore = Math.round(score);
 
         // Check previous high score for coin calculation
-        const previousBestResult = await this.resultModel.findOne({
-            userId,
-            subjectId: subjectIdNum
-        }).sort({ score: -1 }).exec();
+        const previousBestResult = await this.prisma.result.findFirst({
+            where: { userId, subjectId: subjectIdNum },
+            orderBy: { score: 'desc' },
+        });
         const previousHighScore = previousBestResult ? previousBestResult.score : 0;
 
         // Generate AI Coach Feedback
@@ -343,56 +373,54 @@ export class ExamService {
                 pertanyaan: q.pertanyaan,
                 tipe: q.tipe || 'pilihan_ganda',
                 pilihan: q.pilihan || [],
-                rubrik_penilaian: q.rubrik_penilaian || ''
+                rubrik_penilaian: q.rubrik_penilaian || '',
+                penjelasan: q.penjelasan,
+                kunci_jawaban: q.kunci_jawaban
             }));
 
         // Save result
-        const newResult = new this.resultModel({
-            userId,
-            subjectId: subjectIdNum,
-            subjectName: subject.nama,
-            score: finalScore,
-            correctCount,
-            totalQuestions,
-            cheatCount: cheatCount || 0,
-            aiCoachFeedback: coachFeedback,
-            questions: questionsForSave,
-            results,
-            date: new Date()
+        const newResult = await this.prisma.result.create({
+            data: {
+                userId,
+                subjectId: subjectIdNum,
+                subjectName: subject.nama,
+                score: finalScore,
+                correctCount,
+                totalQuestions,
+                cheatCount: cheatCount || 0,
+                aiCoachFeedback: coachFeedback,
+                questions: questionsForSave,
+                results,
+                date: new Date(),
+            },
         });
-        await newResult.save();
 
         // Clear Exam Session
-        await this.sessionModel.deleteOne({ userId, subjectId: subjectIdNum }).exec();
+        await this.prisma.examSession.deleteMany({ where: { userId, subjectId: subjectIdNum } });
 
         // --- REWARD SYSTEM LOGIC ---
-        let reward = await this.rewardModel.findOne({ userId }).exec();
-        if (!reward) {
-            reward = new this.rewardModel({
-                userId,
-                coins: 0,
-                badges: [],
-                inventory: [],
-                stats: {
-                    examsTaken: 0,
-                    perfectScores: 0,
-                    highScores: 0,
-                    subjects: { math: 0, science: 0, history: 0, language: 0 },
-                    fastFinishes: 0,
-                    retries: 0,
-                    streak: 0,
-                    nightOwl: 0,
-                    earlyBird: 0,
-                    hintsUsed: 0,
-                    noHints: 0,
-                    friendSelected: false,
-                    selectedFriendId: 'robo'
-                }
-            });
-        }
+        const rewardRow = await this.prisma.reward.findUnique({ where: { userId } });
+        const badges: string[] = rewardRow ? [...rewardRow.badges] : [];
+        let coins = rewardRow ? rewardRow.coins : 0;
+        const stats: any = rewardRow ? { ...(rewardRow.stats as any) } : {
+            examsTaken: 0,
+            perfectScores: 0,
+            highScores: 0,
+            subjects: { math: 0, science: 0, history: 0, language: 0 },
+            fastFinishes: 0,
+            retries: 0,
+            streak: 0,
+            nightOwl: 0,
+            earlyBird: 0,
+            hintsUsed: 0,
+            noHints: 0,
+            friendSelected: false,
+            selectedFriendId: 'robo'
+        };
+        if (!stats.subjects) stats.subjects = { math: 0, science: 0, history: 0, language: 0 };
 
         // Update Stats
-        reward.stats.examsTaken += 1;
+        stats.examsTaken = (stats.examsTaken || 0) + 1;
 
         // Coin Logic: Only award difference if new score is higher than previous best
         let coinsEarned = 0;
@@ -403,37 +431,40 @@ export class ExamService {
             coinsEarned = currentCoins - previousCoins;
         }
 
-        reward.coins += coinsEarned;
+        coins += coinsEarned;
 
-        if (finalScore === 100) reward.stats.perfectScores += 1;
-        if (finalScore >= 80) reward.stats.highScores += 1;
+        if (finalScore === 100) stats.perfectScores = (stats.perfectScores || 0) + 1;
+        if (finalScore >= 80) stats.highScores = (stats.highScores || 0) + 1;
 
         const lowerName = subject.nama.toLowerCase();
-        if (lowerName.includes('matematika')) reward.stats.subjects.math += 1;
-        if (lowerName.includes('sains') || lowerName.includes('ipa')) reward.stats.subjects.science += 1;
-        if (lowerName.includes('sejarah') || lowerName.includes('ips')) reward.stats.subjects.history += 1;
-        if (lowerName.includes('bahasa')) reward.stats.subjects.language += 1;
+        if (lowerName.includes('matematika')) stats.subjects.math = (stats.subjects.math || 0) + 1;
+        if (lowerName.includes('sains') || lowerName.includes('ipa')) stats.subjects.science = (stats.subjects.science || 0) + 1;
+        if (lowerName.includes('sejarah') || lowerName.includes('ips')) stats.subjects.history = (stats.subjects.history || 0) + 1;
+        if (lowerName.includes('bahasa')) stats.subjects.language = (stats.subjects.language || 0) + 1;
 
         const hour = new Date().getHours();
-        if (hour >= 20 || hour <= 4) reward.stats.nightOwl += 1;
-        if (hour >= 5 && hour <= 8) reward.stats.earlyBird += 1;
+        if (hour >= 20 || hour <= 4) stats.nightOwl = (stats.nightOwl || 0) + 1;
+        if (hour >= 5 && hour <= 8) stats.earlyBird = (stats.earlyBird || 0) + 1;
 
         // Check Badges
         const newBadges: { id: string; name: string }[] = [];
         BADGES.forEach(badge => {
-            if (!reward.badges.includes(badge.id)) {
-                if (badge.condition(reward.stats, reward.coins, reward.badges)) {
+            if (!badges.includes(badge.id)) {
+                if (badge.condition(stats, coins, badges)) {
                     newBadges.push({ id: badge.id, name: badge.id });
-                    reward.badges.push(badge.id);
+                    badges.push(badge.id);
                 }
             }
         });
 
-        await reward.save();
+        await this.prisma.reward.upsert({
+            where: { userId },
+            create: { userId, coins, badges, inventory: [], stats },
+            update: { coins, badges, stats },
+        });
         // ---------------------------
 
-        // Convert ObjectId to string
-        const resultId = newResult._id ? newResult._id.toString() : null;
+        const resultId = newResult.id;
         if (!resultId) {
             throw new Error('Failed to get result ID after saving');
         }
@@ -448,7 +479,7 @@ export class ExamService {
             aiCoachFeedback: coachFeedback,
             newBadges,
             coinsEarned,
-            totalCoins: reward.coins
+            totalCoins: coins
         };
     }
 
@@ -497,6 +528,75 @@ export class ExamService {
                 }
             } catch (err) {
                 console.error('AI Coach error:', err instanceof Error ? err.message : err);
+                continue;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Generate a short explanation for a wrong PG answer using AI.
+     * Returns null when no tokens configured or AI fails.
+     */
+    private async generatePGExplanation(question: string, userAnswer: string, correctAnswer: string, pilihan: any[]): Promise<string | null> {
+        const tokens: string[] = [];
+        const token1 = this.configService.get<string>('CHUTES_API_TOKEN');
+        const token2 = this.configService.get<string>('CHUTES_API_TOKEN_2');
+        if (token1) tokens.push(token1);
+        if (token2) tokens.push(token2);
+        if (tokens.length === 0) return null;
+
+        const findText = (id: string) => {
+            const opt = (pilihan || []).find((p: any) => (p.id || p.text) === id);
+            return opt ? (opt.text || opt.jawaban || opt.label || id) : id;
+        };
+        const jawabanBenarText = findText(correctAnswer);
+        const jawabanUserText = findText(userAnswer);
+
+        const prompt = `Siswa SD menjawab salah soal pilihan ganda.
+
+Soal: ${question}
+
+Jawaban siswa: ${jawabanUserText}
+Jawaban benar: ${jawabanBenarText}
+
+Jelaskan dalam 1-2 kalimat singkat, ramah, dan mudah dipahami anak SD: KENAPA jawaban yang benar itu benar dan KENAPA jawaban siswa salah. Jangan mengulang soal. Langsung ke penjelasan.`;
+
+        for (const token of tokens) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+                const response = await fetch('https://llm.chutes.ai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'Qwen/Qwen3-235B-A22B',
+                        messages: [{ role: 'user', content: '/no_think\n' + prompt }],
+                        stream: false,
+                        max_tokens: 200,
+                        temperature: 0.5
+                    }),
+                    signal: controller.signal,
+                });
+
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    if (response.status === 402 || response.status === 429) continue;
+                    return null;
+                }
+
+                const data = await response.json();
+                const content = data.choices?.[0]?.message?.content;
+                if (content) {
+                    return this.stripThinkingTags(content);
+                }
+            } catch (err) {
+                console.error('PG explanation error:', err instanceof Error ? err.message : err);
                 continue;
             }
         }
@@ -566,7 +666,7 @@ export class ExamService {
         return { score, feedback };
     }
 
-    private async gradeEssayWithAI(question: string, userAnswer: string, rubric: string): Promise<{ score: number, feedback: string }> {
+    private async gradeEssayWithAI(question: string, userAnswer: string, rubric: string, kunciJawaban?: string): Promise<{ score: number, feedback: string }> {
         const apiUrl = this.configService.get<string>('PECUT_AI_URL') || 'https://llm.mfah.me/v1/chat/completions';
         const apiToken = this.configService.get<string>('PECUT_AI_TOKEN');
 
@@ -575,6 +675,7 @@ export class ExamService {
         // Truncate very long answers to prevent excessive token usage
         const truncatedAnswer = userAnswer.length > 500 ? userAnswer.substring(0, 500) + '...' : userAnswer;
         const truncatedRubric = rubric && rubric.length > 300 ? rubric.substring(0, 300) + '...' : (rubric || 'Jawaban benar dan lengkap');
+        const kunci = kunciJawaban && kunciJawaban.length > 300 ? kunciJawaban.substring(0, 300) + '...' : (kunciJawaban || '');
 
         const prompt = `Kamu adalah guru yang menilai jawaban siswa SD.
 
@@ -583,6 +684,7 @@ Pertanyaan: ${question}
 Jawaban siswa: ${truncatedAnswer}
 
 Rubrik: ${truncatedRubric}
+${kunci ? `\nKunci jawaban (referensi): ${kunci}` : ''}
 
 Tugasmu: Analisis jawaban lalu berikan nilai dan feedback singkat.
 
@@ -624,12 +726,15 @@ FEEDBACK: [1 kalimat singkat]`;
             }
 
             let responseText = await response.text();
+            console.log(`AI raw response (first 500 chars): ${responseText.substring(0, 500)}`);
             responseText = responseText.replace(/data:\s*\[DONE\]\s*$/, '').trim();
-            
+
             const data = JSON.parse(responseText);
+            console.log(`Parsed data.choices: ${JSON.stringify(data.choices?.slice(0, 1))}`);
             const content = data.choices?.[0]?.message?.content;
             if (!content) {
                 console.warn('Empty response from AI');
+                console.warn(`Full response data: ${JSON.stringify(data).substring(0, 500)}`);
                 return { score: 0, feedback: 'Tidak dapat menilai jawaban' };
             }
 
@@ -659,14 +764,17 @@ FEEDBACK: [1 kalimat singkat]`;
     }
 
     async retryGrading(resultId: string, questionId: number) {
-        const result = await this.resultModel.findById(resultId).exec();
+        const result = await this.prisma.result.findUnique({ where: { id: resultId } });
         if (!result) throw new NotFoundException('Result not found');
 
+        const resultItems = this.asArray(result.results);
+        const savedQuestions = this.asArray(result.questions);
+
         // Find the specific result item for this question
-        const questionResultIndex = result.results.findIndex(r => r.id === questionId);
+        const questionResultIndex = resultItems.findIndex(r => r.id === questionId);
         if (questionResultIndex === -1) throw new NotFoundException('Question result not found');
 
-        const questionResult = result.results[questionResultIndex];
+        const questionResult = resultItems[questionResultIndex];
 
         // Only allow retrying essay questions
         if (questionResult.tipe !== 'isian') {
@@ -674,11 +782,11 @@ FEEDBACK: [1 kalimat singkat]`;
         }
 
         // Find the original question to get the rubric
-        const savedQuestion = result.questions.find(q => q.id === questionId);
+        const savedQuestion = savedQuestions.find(q => q.id === questionId);
         if (!savedQuestion) throw new NotFoundException('Question definition not found');
 
         // Re-run AI grading
-        const aiResult = await this.gradeEssayWithAI(savedQuestion.pertanyaan, questionResult.userAnswer, savedQuestion.rubrik_penilaian);
+        const aiResult = await this.gradeEssayWithAI(savedQuestion.pertanyaan, questionResult.userAnswer, savedQuestion.rubrik_penilaian, savedQuestion.kunci_jawaban);
         const aiScore = aiResult.score;
         const aiFeedback = aiResult.feedback
             ? `${aiResult.feedback}\n\nNilai: ${Math.round(aiScore)}/100`
@@ -688,15 +796,15 @@ FEEDBACK: [1 kalimat singkat]`;
         const totalQuestions = result.totalQuestions;
 
         // Update properties
-        result.results[questionResultIndex].aiScore = Math.round(aiScore);
-        result.results[questionResultIndex].aiFeedback = aiFeedback;
-        result.results[questionResultIndex].correct = aiScore >= 70;
+        resultItems[questionResultIndex].aiScore = Math.round(aiScore);
+        resultItems[questionResultIndex].aiFeedback = aiFeedback;
+        resultItems[questionResultIndex].correct = aiScore >= 70;
 
         // Recalculate total score
         let newTotalScore = 0;
         let newCorrectCount = 0;
 
-        result.results.forEach(r => {
+        resultItems.forEach(r => {
             if (r.tipe === 'isian') {
                 const qScore = (r.aiScore / 100) * (100 / totalQuestions);
                 newTotalScore += qScore;
@@ -710,18 +818,19 @@ FEEDBACK: [1 kalimat singkat]`;
             }
         });
 
-        result.score = Math.round(newTotalScore);
-        result.correctCount = newCorrectCount;
+        const score = Math.round(newTotalScore);
 
         // Save updated result
-        result.markModified('results');
-        await result.save();
+        await this.prisma.result.update({
+            where: { id: resultId },
+            data: { results: resultItems, score, correctCount: newCorrectCount },
+        });
 
         return {
             success: true,
-            newScore: result.score,
-            newCorrectCount: result.correctCount,
-            updatedQuestionResult: result.results[questionResultIndex]
+            newScore: score,
+            newCorrectCount: newCorrectCount,
+            updatedQuestionResult: resultItems[questionResultIndex]
         };
     }
 

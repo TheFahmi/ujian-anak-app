@@ -17,6 +17,7 @@ interface ExamResult {
         correctAnswer?: string;
         aiScore?: number;
         aiFeedback?: string;
+        penjelasan?: string;
     }>;
     newBadges?: Array<{
         id: string;
@@ -33,6 +34,7 @@ interface Question {
     pertanyaan: string;
     tipe?: string;
     pilihan?: Array<{ id: string; text?: string; jawaban?: string }>;
+    penjelasan?: string;
 }
 
 export default function ExamResultPage() {
@@ -227,20 +229,32 @@ export default function ExamResultPage() {
                     <div className="flex flex-col gap-3 mt-4">
                         {filteredResults.map((r, idx) => {
                             const originalQ = questions.find(q => q.id === r.id);
+                            const penjelasan = r.penjelasan || originalQ?.penjelasan || '';
                             return (
-                                <div key={r.id} className="bg-white p-3 px-4 rounded-2xl border-2 border-[#e2e8f0] shadow-[2px_2px_0px_#e2e8f0] flex items-center justify-between gap-4 min-h-14">
-                                    <p className="flex-1 whitespace-nowrap overflow-hidden text-ellipsis text-sm font-medium text-[#0f172a] m-0">
-                                        {originalQ ? originalQ.pertanyaan : `Pertanyaan ${idx + 1}`}
-                                    </p>
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border-2 ${
-                                        r.correct 
-                                            ? 'bg-green-100 border-green-200 text-green-600' 
-                                            : 'bg-red-100 border-red-200 text-red-600'
-                                    }`}>
-                                        <span className="material-symbols-outlined text-lg">
-                                            {r.correct ? 'check' : 'close'}
-                                        </span>
+                                <div key={r.id} className={`bg-white p-3 px-4 rounded-2xl border-2 ${r.correct ? 'border-[#e2e8f0] shadow-[2px_2px_0px_#e2e8f0]' : 'border-red-200 shadow-[2px_2px_0px_#fecaca]'} min-h-14`}>
+                                    <div className="flex items-center justify-between gap-4">
+                                        <p className="flex-1 whitespace-nowrap overflow-hidden text-ellipsis text-sm font-medium text-[#0f172a] m-0">
+                                            {originalQ ? originalQ.pertanyaan : `Pertanyaan ${idx + 1}`}
+                                        </p>
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border-2 ${
+                                            r.correct 
+                                                ? 'bg-green-100 border-green-200 text-green-600' 
+                                                : 'bg-red-100 border-red-200 text-red-600'
+                                        }`}>
+                                            <span className="material-symbols-outlined text-lg">
+                                                {r.correct ? 'check' : 'close'}
+                                            </span>
+                                        </div>
                                     </div>
+                                    {!r.correct && penjelasan && (
+                                        <div className="mt-3 pt-3 border-t-2 border-red-100">
+                                            <p className="text-blue-600 text-xs font-bold mb-1 flex items-center gap-1">
+                                                <span className="material-symbols-outlined text-sm">lightbulb</span>
+                                                Kenapa salah?
+                                            </p>
+                                            <p className="text-[#0f172a] text-xs leading-relaxed whitespace-pre-wrap">{penjelasan}</p>
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}
