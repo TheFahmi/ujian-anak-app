@@ -323,6 +323,31 @@ export class DashboardService {
                 correctCount: r.correctCount,
                 totalQuestions: r.totalQuestions,
             })),
+            adaptif: await this.getChildAdaptiveProgress(childId),
         };
+    }
+
+    // Progress adaptif anak (level + skill per mapel) utk laporan orang tua
+    private async getChildAdaptiveProgress(childId: string) {
+        const progresses = await this.prisma.studentProgress.findMany({
+            where: { userId: childId },
+        });
+        if (progresses.length === 0) return [];
+
+        const subjects = await this.prisma.subject.findMany();
+        const levelLabel = (l: number) => (l === 0 ? 'TK' : `Kelas ${l}`);
+        return progresses.map(p => {
+            const subject = subjects.find(s => s.id === p.subjectId);
+            return {
+                subjectId: p.subjectId,
+                nama: subject?.nama || 'Mapel',
+                level: p.level,
+                levelLabel: levelLabel(p.level),
+                stars: p.stars,
+                mastered: (p.mastered || []).length,
+                badges: p.badges || [],
+                sertifikat: Array.isArray(p.sertifikat) ? p.sertifikat : [],
+            };
+        });
     }
 }

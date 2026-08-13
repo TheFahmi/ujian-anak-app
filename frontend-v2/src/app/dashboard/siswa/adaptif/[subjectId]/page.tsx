@@ -26,6 +26,7 @@ export default function AdaptiveAssessmentPage() {
     const [tutor, setTutor] = useState<any>(null);
     const [badgeName, setBadgeName] = useState('');
     const [showSertifikat, setShowSertifikat] = useState(false);
+    const [skillTree, setSkillTree] = useState<any[]>([]);
 
     useEffect(() => {
         if (!user || !subjectId) return;
@@ -50,8 +51,18 @@ export default function AdaptiveAssessmentPage() {
                 console.error(e);
             }
         };
+        const fetchSkillTree = async () => {
+            try {
+                const res = await fetch(`/api/adaptive/skill-tree/${subjectId}`);
+                const d = await res.json();
+                setSkillTree(d.skills || []);
+            } catch (e) {
+                console.error(e);
+            }
+        };
         fetchProgress();
         fetchTutor();
+        fetchSkillTree();
     }, [user, subjectId]);
 
     const startQuiz = async () => {
@@ -161,6 +172,48 @@ export default function AdaptiveAssessmentPage() {
                                 <span className="font-bold text-[#0f172a]">{progress?.mastered?.length ?? 0} skill</span>
                             </div>
                         </div>
+                        {/* Skill tree jalur */}
+                        {skillTree.length > 0 && (
+                            <div className="bg-white rounded-3xl border-2 border-[#e2e8f0] shadow-[4px_4px_0px_#e2e8f0] p-5 mb-6">
+                                <p className="font-[var(--font-fredoka)] font-bold text-[#0f172a] mb-3">🗺️ Jalur Belajarmu</p>
+                                <div className="flex flex-col gap-1.5">
+                                    {[0, 1, 2, 3, 4, 5, 6].map(lv => {
+                                        const skills = skillTree.filter(s => s.level === lv);
+                                        if (skills.length === 0) return null;
+                                        const isLevel = progress?.level === lv;
+                                        const done = skills.every(s => (progress?.mastered || []).includes(s.id));
+                                        return (
+                                            <div key={lv} className="flex items-center gap-3">
+                                                <div className={`w-14 shrink-0 text-[11px] font-bold rounded-lg px-2 py-1.5 text-center ${
+                                                    done ? 'bg-green-100 text-green-700'
+                                                    : isLevel ? 'bg-[#6c5ce7]/10 text-[#6c5ce7] border border-[#6c5ce7]'
+                                                    : 'bg-gray-100 text-gray-500'
+                                                }`}>
+                                                    {lv === 0 ? 'TK' : `K${lv}`}
+                                                </div>
+                                                <div className="flex-1 flex flex-wrap gap-1.5">
+                                                    {skills.map(s => {
+                                                        const mastered = (progress?.mastered || []).includes(s.id);
+                                                        return (
+                                                            <span key={s.id} className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border ${
+                                                                mastered
+                                                                    ? 'bg-green-50 text-green-700 border-green-200'
+                                                                    : isLevel
+                                                                        ? 'bg-[#6c5ce7]/5 text-[#6c5ce7] border-[#6c5ce7]/30'
+                                                                        : 'bg-gray-50 text-gray-400 border-gray-200'
+                                                            }`}>
+                                                                {mastered ? '✓ ' : ''}{s.nama}
+                                                            </span>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex flex-col gap-3">
                             <button
                                 onClick={startQuiz}

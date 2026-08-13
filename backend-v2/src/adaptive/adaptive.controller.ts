@@ -17,6 +17,18 @@ export class AdaptiveController {
         return this.adaptiveService.getMapelInfo(subjectId);
     }
 
+    // Rekomendasi belajar harian
+    @Get('rekomendasi')
+    async getDailyRecommendation(@Query('userId') userId?: string) {
+        return this.adaptiveService.getDailyRecommendation(userId || '');
+    }
+
+    // Koleksi sertifikat & badge siswa
+    @Get('koleksi')
+    async getCollection(@Query('userId') userId?: string) {
+        return this.adaptiveService.getCollection(userId || '');
+    }
+
     // Progress siswa per mapel
     @Get('progress/:subjectId')
     async getProgress(@Param('subjectId') subjectId: string, @Query('userId') userId?: string) {

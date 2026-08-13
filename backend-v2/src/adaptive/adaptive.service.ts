@@ -369,4 +369,74 @@ JAWAB HANYA JSON array, format tiap soal:
                 : 'Terus berlatih ya! Kamu pasti bisa. 💪',
         };
     }
+
+    /** Koleksi sertifikat & badge siswa (semua mapel) */
+    async getCollection(userId: string) {
+        const progresses = await this.prisma.studentProgress.findMany({
+            where: { userId },
+        });
+        if (progresses.length === 0) return { koleksi: [], badges: [] };
+
+        const subjects = await this.prisma.subject.findMany();
+        const koleksi: any[] = [];
+        const badges: string[] = [];
+        for (const p of progresses) {
+            const subject = subjects.find(s => s.id === p.subjectId);
+            const nama = subject?.nama || 'Mapel';
+            if (Array.isArray(p.badges)) {
+                for (const b of p.badges) {
+                    if (!badges.includes(b)) badges.push(b);
+                }
+            }
+            if (Array.isArray(p.sertifikat)) {
+                for (const raw of p.sertifikat) {
+                    const s = raw as any;
+                    koleksi.push({
+                        id: `${p.subjectId}-${s.level}`,
+                        nama: s.nama || `Sertifikat ${nama}`,
+                        mapel: nama,
+                        level: s.level,
+                        date: s.date,
+                    });
+                }
+            }
+        }
+        // Sort koleksi: terbaru dulu
+        koleksi.sort((a, b) => (a.date < b.date ? 1 : -1));
+        return { koleksi, badges };
+    }
+
+    /** Rekomendasi belajar harian (tanpa AI - berdasarkan progress) */
+    async getDailyRecommendation(userId: string) {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new NotFoundException('User tidak ditemukan');
+
+        const progressList = await this.prisma.studentProgress.findMany({
+            where: { userId },
+        });
+        if (progressList.length === 0) {
+            return {
+                rekomendasi: 'Mulai assessment pertamamu! AI akan deteksi level belajarmu. 🚀',
+                target: 'Ikuti assessment di salah satu mapel',
+            };
+        }
+
+        // Cari mapel dengan level terendah (butuh perhatian)
+        const sorted = [...progressList].sort((a, b) => a.level - b.level);
+        const min = sorted[0];
+        const subject = await this.prisma.subject.findUnique({ where: { id: min.subjectId } });
+        // Skill belum dikuasai di level saat ini
+        const skills = await this.prisma.skillNode.findMany({
+            where: { subjectId: min.subjectId, level: min.level },
+            orderBy: { urutan: 'asc' },
+        });
+        const belum = skills.find(s => !(min.mastered || []).includes(s.id)) || skills[0];
+
+        return {
+            rekomendasi: `Hari ini: latihan "${belum?.nama || 'skill'}" di ${subject?.nama || 'mapel'} (${min.level === 0 ? 'TK' : `Kelas ${min.level}`})`,
+            target: belum ? belum.nama : '',
+            mapel: subject?.nama || '',
+            levelLabel: min.level === 0 ? 'TK' : `Kelas ${min.level}`,
+        };
+    }
 }

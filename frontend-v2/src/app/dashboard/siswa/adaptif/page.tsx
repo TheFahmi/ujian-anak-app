@@ -23,6 +23,21 @@ export default function AdaptiveDashboardPage() {
     const router = useRouter();
     const [mapels, setMapels] = useState<MapelProgress[]>([]);
     const [loading, setLoading] = useState(true);
+    const [rekomendasi, setRekomendasi] = useState<any>(null);
+
+    useEffect(() => {
+        if (!user) return;
+        const fetchRekomendasi = async () => {
+            try {
+                const res = await fetch(`/api/adaptive/rekomendasi?userId=${user.id}`);
+                const d = await res.json();
+                setRekomendasi(d);
+            } catch (e) {
+                console.error(e);
+            }
+        };
+        fetchRekomendasi();
+    }, [user]);
 
     useEffect(() => {
         if (!user) return;
@@ -70,9 +85,27 @@ export default function AdaptiveDashboardPage() {
                 <h1 className="font-[var(--font-fredoka)] text-2xl text-[#0f172a] mb-1">
                     Belajar Sesuai Kemampuanmu! 🌟
                 </h1>
-                <p className="text-sm text-gray-500 mb-6">
-                    AI deteksi kemampuan dasar. Kalau belum paham, kita turun ke level paling dasar dulu!
-                </p>
+                <div className="flex items-center justify-between mb-6">
+                    <p className="text-sm text-gray-500">
+                        AI deteksi kemampuan dasar. Kalau belum paham, kita turun ke level paling dasar dulu!
+                    </p>
+                    <button
+                        onClick={() => router.push('/dashboard/siswa/adaptif/koleksi')}
+                        className="shrink-0 text-xs font-bold text-[#6c5ce7] bg-[#6c5ce7]/10 px-3 py-2 rounded-xl"
+                    >
+                        🏆 Koleksiku
+                    </button>
+                </div>
+
+                {rekomendasi && (
+                    <div className="bg-[#6c5ce7] text-white rounded-3xl p-5 mb-6 shadow-[4px_4px_0px_#0f172a] border-2 border-[#0f172a]">
+                        <p className="text-xs font-bold uppercase tracking-wide text-white/70 mb-1">📅 Rekomendasi Hari Ini</p>
+                        <p className="font-bold text-white">{rekomendasi.rekomendasi}</p>
+                        {rekomendasi.target && (
+                            <p className="text-sm text-white/80 mt-1">🎯 Target: {rekomendasi.target}</p>
+                        )}
+                    </div>
+                )}
 
                 {loading ? (
                     <p className="text-center py-10 text-gray-400">Memuat...</p>
