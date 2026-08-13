@@ -11,6 +11,12 @@ export class AdaptiveController {
         return this.adaptiveService.getSkillTree(subjectId);
     }
 
+    // Info tutor + badge mapel
+    @Get('mapel-info/:subjectId')
+    async getMapelInfo(@Param('subjectId') subjectId: string) {
+        return this.adaptiveService.getMapelInfo(subjectId);
+    }
+
     // Progress siswa per mapel
     @Get('progress/:subjectId')
     async getProgress(@Param('subjectId') subjectId: string, @Query('userId') userId?: string) {

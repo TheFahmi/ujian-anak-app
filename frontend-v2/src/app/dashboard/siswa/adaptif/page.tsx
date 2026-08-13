@@ -15,6 +15,7 @@ interface MapelProgress {
     stars: number;
     mastered: number;
     totalSkills: number;
+    badges: string[];
 }
 
 export default function AdaptiveDashboardPage() {
@@ -45,9 +46,10 @@ export default function AdaptiveDashboardPage() {
                                 stars: p?.stars ?? 0,
                                 mastered: (p?.mastered || []).length,
                                 totalSkills: (tree?.skills || []).length,
+                                badges: p?.badges || [],
                             };
                         } catch {
-                            return { subjectId: s.id, nama: s.nama, level: 0, stars: 0, mastered: 0, totalSkills: 0 };
+                            return { subjectId: s.id, nama: s.nama, level: 0, stars: 0, mastered: 0, totalSkills: 0, badges: [] };
                         }
                     })
                 );
@@ -116,6 +118,15 @@ export default function AdaptiveDashboardPage() {
                                         <span>{m.mastered} skill dikuasai</span>
                                         <span>{pct}%</span>
                                     </div>
+                                    {m.badges.length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 mt-2.5">
+                                            {m.badges.map(b => (
+                                                <span key={b} className="text-xs font-bold text-[#92400e] bg-[#fef3c7] border border-[#fbbf24] px-2.5 py-1 rounded-xl">
+                                                    🏅 {b}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </button>
                             );
                         })}

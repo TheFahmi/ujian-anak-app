@@ -2,6 +2,40 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 
+// Tutor AI config per mapel (maskot + warna + persona)
+export const TUTOR_CONFIG: Record<string, { maskot: string; warna: string; nama: string; sapa: string }> = {
+    'Matematika': { maskot: '/images/ai-prof-hoot-v2.png', warna: '#3b82f6', nama: 'Robo Biru', sapa: 'Ayo hitung bersama!' },
+    'Bahasa Indonesia': { maskot: '/images/ai-robo-v2.png', warna: '#ef4444', nama: 'Rara Merah', sapa: 'Mari membaca bersama!' },
+    'Bahasa inggris': { maskot: '/images/ai-prof-hoot-v2.png', warna: '#8b5cf6', nama: 'Vio Ungu', sapa: 'Let\'s learn English!' },
+    'Bahasa Inggris': { maskot: '/images/ai-prof-hoot-v2.png', warna: '#8b5cf6', nama: 'Vio Ungu', sapa: 'Let\'s learn English!' },
+    'IPA': { maskot: '/images/ai-robo-v2.png', warna: '#22c55e', nama: 'Nino Hijau', sapa: 'Ayo eksplorasi alam!' },
+    'IPS': { maskot: '/images/ai-prof-hoot-v2.png', warna: '#f97316', nama: 'Oka Oranye', sapa: 'Mari jelajah dunia!' },
+    'Pendidikan Pancasila': { maskot: '/images/ai-robo-v2.png', warna: '#eab308', nama: 'Gara Emas', sapa: 'Belajar nilai-nilai bangsa!' },
+    'Seni Budaya': { maskot: '/images/ai-prof-hoot-v2.png', warna: '#ec4899', nama: 'Seni Ceria', sapa: 'Mari berkarya!' },
+    'PJOK': { maskot: '/images/ai-robo-v2.png', warna: '#10b981', nama: 'Fit Aktif', sapa: 'Bergerak itu sehat!' },
+};
+
+// Badge per mapel (Master saat semua skill level max dikuasai)
+const BADGE_CONFIG: Record<string, string> = {
+    'Matematika': 'Master Matematika',
+    'Bahasa Indonesia': 'Ahli Membaca',
+    'Bahasa inggris': 'Bintang Bahasa Inggris',
+    'Bahasa Inggris': 'Bintang Bahasa Inggris',
+    'IPA': 'Juara IPA',
+    'IPS': 'Penjelajah IPS',
+    'Pendidikan Pancasila': 'Pahlawan Pancasila',
+    'Seni Budaya': 'Seniman Kreatif',
+    'PJOK': 'Atlet Ceria',
+};
+
+function tutorFor(subjectName: string) {
+    return TUTOR_CONFIG[subjectName] || TUTOR_CONFIG['Matematika'];
+}
+
+function badgeFor(subjectName: string) {
+    return BADGE_CONFIG[subjectName] || `${subjectName} Champion`;
+}
+
 @Injectable()
 export class AdaptiveService {
     constructor(
@@ -144,6 +178,8 @@ JAWAB HANYA JSON array, format tiap soal:
         const skor = total > 0 ? Math.round((correct / total) * 100) : 0;
 
         let naik = false, turun = false;
+        let badgeBaru: string | null = null;
+        let sertifikatBaru: string | null = null;
         // ≥2 benar dari 3 → kuasai skill & naik
         if (correct >= 2 && total >= 3) {
             // Tandai skill level saat ini dikuasai
@@ -160,12 +196,36 @@ JAWAB HANYA JSON array, format tiap soal:
             const newLevel = Math.min(6, progress.level + 1);
             naik = newLevel !== progress.level;
 
+            // Badge & sertifikat
+            const subjectName = subject?.nama || 'Matematika';
+            const badges = [...(progress.badges || [])];
+            const sertifikat = Array.isArray(progress.sertifikat) ? [...progress.sertifikat] : [];
+
+            // Sertifikat setiap naik level (level baru tercapai)
+            if (naik) {
+                const labelBaru = newLevel === 0 ? 'TK' : `Kelas ${newLevel}`;
+                sertifikatBaru = `Sertifikat ${subjectName} Level ${labelBaru}`;
+                sertifikat.push({ level: newLevel, nama: sertifikatBaru, date: new Date().toISOString() });
+            }
+
+            // Badge Master saat semua level dikuasai
+            const totalSkills = await this.prisma.skillNode.count({ where: { subjectId } });
+            if (baruMastered.length >= totalSkills && totalSkills > 0) {
+                const badgeNama = badgeFor(subjectName);
+                if (!badges.includes(badgeNama)) {
+                    badges.push(badgeNama);
+                    badgeBaru = badgeNama;
+                }
+            }
+
             await this.prisma.studentProgress.update({
                 where: { id: progress.id },
                 data: {
                     level: newLevel,
                     mastered: baruMastered,
                     stars,
+                    badges,
+                    sertifikat,
                     currentSkillId: '',
                     history: [...(Array.isArray(progress.history) ? progress.history : []), { date: new Date().toISOString(), level: progress.level, skor }],
                 },
@@ -217,6 +277,22 @@ JAWAB HANYA JSON array, format tiap soal:
                 : turun
                     ? 'Tidak apa-apa! Kita turun satu level dulu, belajar dari dasar. 💪'
                     : 'Level kamu tetap. Terus berlatih!',
+            badgeBaru,
+            sertifikatBaru,
+            tutor: tutorFor(subject?.nama || 'Matematika'),
+            badges: progress.badges || [],
+            sertifikat: Array.isArray(progress.sertifikat) ? progress.sertifikat : [],
+        };
+    }
+
+    // Info tutor + badge untuk halaman assessment
+    async getMapelInfo(subjectId: string) {
+        const subject = await this.prisma.subject.findUnique({ where: { id: subjectId } });
+        if (!subject) throw new NotFoundException('Mapel tidak ditemukan');
+        return {
+            subject: { id: subject.id, nama: subject.nama, kelas: subject.kelas },
+            tutor: tutorFor(subject.nama),
+            badge: badgeFor(subject.nama),
         };
     }
 }

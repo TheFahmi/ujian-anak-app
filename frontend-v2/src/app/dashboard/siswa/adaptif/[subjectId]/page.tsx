@@ -23,6 +23,9 @@ export default function AdaptiveAssessmentPage() {
     const [result, setResult] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState<any>(null);
+    const [tutor, setTutor] = useState<any>(null);
+    const [badgeName, setBadgeName] = useState('');
+    const [showSertifikat, setShowSertifikat] = useState(false);
 
     useEffect(() => {
         if (!user || !subjectId) return;
@@ -37,7 +40,18 @@ export default function AdaptiveAssessmentPage() {
                 console.error(e);
             }
         };
+        const fetchTutor = async () => {
+            try {
+                const res = await fetch(`/api/adaptive/mapel-info/${subjectId}`);
+                const d = await res.json();
+                setTutor(d.tutor);
+                setBadgeName(d.badge || '');
+            } catch (e) {
+                console.error(e);
+            }
+        };
         fetchProgress();
+        fetchTutor();
     }, [user, subjectId]);
 
     const startQuiz = async () => {
@@ -45,7 +59,7 @@ export default function AdaptiveAssessmentPage() {
         setLoading(true);
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 60000);
+            const timeoutId = setTimeout(() => controller.abort(), 90000);
             const res = await fetch('/api/adaptive/assessment/start', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -96,6 +110,9 @@ export default function AdaptiveAssessmentPage() {
             const data = await res.json();
             setResult(data);
             setPhase('result');
+            if (data.naik || data.badgeBaru) {
+                setTimeout(() => setShowSertifikat(true), 1200);
+            }
         } catch (e) {
             console.error(e);
             alert('Gagal submit. Coba lagi.');
@@ -120,6 +137,16 @@ export default function AdaptiveAssessmentPage() {
                                 AI akan tes kemampuanmu dengan 3 soal. Jawab dengan jujur ya!
                             </p>
                         </div>
+                        {/* Tutor AI banner */}
+                        {tutor && (
+                            <div className="flex items-center gap-4 bg-white rounded-3xl border-2 border-[#e2e8f0] shadow-[4px_4px_0px_#e2e8f0] p-4 mb-6">
+                                <img src={tutor.maskot} alt={tutor.nama} className="w-14 h-14 object-contain" />
+                                <div>
+                                    <p className="font-bold text-[#0f172a]" style={{ color: tutor.warna }}>{tutor.nama}</p>
+                                    <p className="text-sm text-gray-500">{tutor.sapa}</p>
+                                </div>
+                            </div>
+                        )}
                         <div className="bg-white rounded-3xl border-2 border-[#e2e8f0] shadow-[4px_4px_0px_#e2e8f0] p-5 mb-6">
                             <div className="flex justify-between text-sm mb-3">
                                 <span className="text-gray-500">Level saat ini</span>
@@ -183,7 +210,7 @@ export default function AdaptiveAssessmentPage() {
                                             }`}>
                                                 {k}
                                             </span>
-                                            <span className="text-sm text-[#0f172a]">{v as string}</span>
+                                            <span className="text-sm text-[#0f172a]"><MathText text={v as string} /></span>
                                         </button>
                                     ))}
                                 </div>
@@ -240,9 +267,42 @@ export default function AdaptiveAssessmentPage() {
                                 🔄 Coba Lagi
                             </button>
                         </div>
+                        {result.badgeBaru && (
+                            <div className="mt-4 bg-[#fef3c7] border-2 border-[#fbbf24] rounded-2xl p-4 text-center">
+                                <p className="text-3xl mb-1">🏅</p>
+                                <p className="font-bold text-[#92400e]">Badge Baru!</p>
+                                <p className="text-sm text-[#92400e]">{result.badgeBaru}</p>
+                            </div>
+                        )}
                     </>
                 )}
             </div>
+
+            {/* Sertifikat Modal */}
+            {showSertifikat && result && (result.sertifikatBaru || result.badgeBaru) && (
+                <div className="fixed inset-0 z-[2000] bg-black/60 flex items-center justify-center p-6">
+                    <div className="bg-white rounded-3xl p-8 w-full max-w-sm text-center border-4 border-[#fbbf24]">
+                        <div className="text-6xl mb-3">📜</div>
+                        <p className="text-xs font-bold text-[#f59e0b] uppercase tracking-widest mb-1">Sertifikat</p>
+                        <h2 className="font-[var(--font-fredoka)] text-2xl text-[#0f172a] mb-2">
+                            {result.badgeBaru || result.sertifikatBaru}
+                        </h2>
+                        <p className="text-sm text-gray-500 mb-1">
+                            Diberikan kepada
+                        </p>
+                        <p className="font-bold text-xl text-[#0f172a] mb-4">{user?.username}</p>
+                        <p className="text-xs text-gray-400 mb-6">
+                            {result.sertifikatBaru ? `Level ${result.levelLabel} tercapai!` : 'Semua skill dikuasai!'} — Terus belajar ya! 🌟
+                        </p>
+                        <button
+                            onClick={() => setShowSertifikat(false)}
+                            className="w-full bg-[#f4c025] text-[#0f172a] border-2 border-[#0f172a] rounded-2xl py-3 font-bold shadow-[4px_4px_0px_#0f172a]"
+                        >
+                            🎉 Hebat! Lanjut
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

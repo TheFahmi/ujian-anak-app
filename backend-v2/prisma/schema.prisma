@@ -188,6 +188,8 @@ model StudentProgress {
   currentSkillId String @default("")
   // bintang (1 per skill dikuasai)
   stars       Int      @default(0)
+  badges      String[] @default([])
+  sertifikat  Json     @default("[]")
   // riwayat assessment ringkas: [{date, level, skor}]
   history     Json     @default("[]")
   createdAt   DateTime @default(now())
