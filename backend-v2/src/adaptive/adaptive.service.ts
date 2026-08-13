@@ -295,4 +295,78 @@ JAWAB HANYA JSON array, format tiap soal:
             badge: badgeFor(subject.nama),
         };
     }
+
+    /** Mode belajar: latihan intensif per skill (5 soal + penjelasan) */
+    async startLatihan(userId: string, subjectId: string, skillId?: string) {
+        const progress = await this.getProgress(userId, subjectId);
+        // Pilih skill: yang dikirim, atau skill level saat ini
+        let skill;
+        if (skillId) {
+            skill = await this.prisma.skillNode.findUnique({ where: { id: skillId } });
+            if (!skill) throw new NotFoundException('Skill tidak ditemukan');
+        } else {
+            const skills = await this.prisma.skillNode.findMany({
+                where: { subjectId, level: progress.level },
+                orderBy: { urutan: 'asc' },
+            });
+            if (skills.length === 0) throw new NotFoundException('Skill tree belum tersedia untuk mapel ini');
+            skill = skills[0];
+        }
+        const subject = await this.prisma.subject.findUnique({ where: { id: subjectId } });
+        const questions = await this.aiGenerateQuestions(subject?.nama || 'Matematika', skill, 5);
+        return {
+            level: progress.level,
+            levelLabel: progress.level === 0 ? 'TK' : `Kelas ${progress.level}`,
+            skill: { id: skill.id, nama: skill.nama, deskripsi: skill.deskripsi },
+            questions: questions.map((q: any, i: number) => ({ ...q, nomor: i + 1 })),
+        };
+    }
+
+    /** Submit latihan: hitung skor, tandai skill dikuasai kalau ≥4 benar */
+    async submitLatihan(userId: string, subjectId: string, skillId: string, answers: any[]) {
+        const progress = await this.getProgress(userId, subjectId);
+        const total = answers.length;
+        const correct = answers.filter(a => a.jawaban === a.jawaban_benar).length;
+        const skor = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+        const mastered = [...(progress.mastered || [])];
+        const kuasai = correct >= 4 && total >= 5 && !mastered.includes(skillId);
+        if (kuasai) mastered.push(skillId);
+
+        const badges = [...(progress.badges || [])];
+        const subject = await this.prisma.subject.findUnique({ where: { id: subjectId } });
+        const subjectName = subject?.nama || 'Matematika';
+        let badgeBaru: string | null = null;
+        // Badge Master saat semua skill dikuasai
+        const totalSkills = await this.prisma.skillNode.count({ where: { subjectId } });
+        if (mastered.length >= totalSkills && totalSkills > 0) {
+            const badgeNama = badgeFor(subjectName);
+            if (!badges.includes(badgeNama)) {
+                badges.push(badgeNama);
+                badgeBaru = badgeNama;
+            }
+        }
+
+        await this.prisma.studentProgress.update({
+            where: { id: progress.id },
+            data: {
+                mastered,
+                badges,
+                stars: progress.stars + (kuasai ? 1 : 0),
+                currentSkillId: skillId,
+            },
+        });
+
+        return {
+            skor,
+            correct,
+            total,
+            kuasai,
+            badgeBaru,
+            tutor: tutorFor(subjectName),
+            message: kuasai
+                ? 'Hebat! Kamu menguasai skill ini. Lanjutkan! 🎉'
+                : 'Terus berlatih ya! Kamu pasti bisa. 💪',
+        };
+    }
 }

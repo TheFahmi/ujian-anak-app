@@ -34,4 +34,16 @@ export class AdaptiveController {
     async submitAssessment(@Body() body: { userId: string; subjectId: string; answers: any[] }) {
         return this.adaptiveService.submitAssessment(body.userId, body.subjectId, body.answers || []);
     }
+
+    // Mode belajar: mulai latihan intensif per skill (5 soal)
+    @Post('latihan/start')
+    async startLatihan(@Body() body: { userId: string; subjectId: string; skillId?: string }) {
+        return this.adaptiveService.startLatihan(body.userId, body.subjectId, body.skillId);
+    }
+
+    // Submit latihan → tandai skill dikuasai kalau ≥4 benar
+    @Post('latihan/submit')
+    async submitLatihan(@Body() body: { userId: string; subjectId: string; skillId: string; answers: any[] }) {
+        return this.adaptiveService.submitLatihan(body.userId, body.subjectId, body.skillId, body.answers || []);
+    }
 }

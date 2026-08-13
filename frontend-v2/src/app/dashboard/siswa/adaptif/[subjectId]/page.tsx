@@ -161,13 +161,22 @@ export default function AdaptiveAssessmentPage() {
                                 <span className="font-bold text-[#0f172a]">{progress?.mastered?.length ?? 0} skill</span>
                             </div>
                         </div>
-                        <button
-                            onClick={startQuiz}
-                            disabled={loading}
-                            className="w-full bg-[#f4c025] text-[#0f172a] border-2 border-[#0f172a] rounded-2xl py-4 font-bold shadow-[4px_4px_0px_#0f172a] active:translate-y-1 active:shadow-none disabled:opacity-50"
-                        >
-                            {loading ? 'Menyiapkan soal...' : '🚀 Mulai Assessment'}
-                        </button>
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={startQuiz}
+                                disabled={loading}
+                                className="w-full bg-[#f4c025] text-[#0f172a] border-2 border-[#0f172a] rounded-2xl py-4 font-bold shadow-[4px_4px_0px_#0f172a] active:translate-y-1 active:shadow-none disabled:opacity-50"
+                            >
+                                {loading ? 'Menyiapkan soal...' : '🚀 Mulai Assessment'}
+                            </button>
+                            <button
+                                onClick={() => router.push(`/dashboard/siswa/adaptif/${subjectId}/latihan/${progress?.currentSkillId || ''}`)}
+                                disabled={!progress?.currentSkillId}
+                                className="w-full bg-[#6c5ce7] text-white border-2 border-[#0f172a] rounded-2xl py-4 font-bold shadow-[4px_4px_0px_#0f172a] active:translate-y-1 active:shadow-none disabled:opacity-40"
+                            >
+                                📚 Lanjut Latihan Skill
+                            </button>
+                        </div>
                         <p className="text-center text-xs text-gray-400 mt-4">
                             Jawab benar 2 dari 3 → naik level. Salah 2 → turun ke dasar. ✨
                         </p>
