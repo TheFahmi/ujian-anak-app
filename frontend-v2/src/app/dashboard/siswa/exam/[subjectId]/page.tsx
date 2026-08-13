@@ -9,6 +9,7 @@ import { useConfirm } from '@/context/ConfirmContext';
 import QuestionCard from '@/components/exam/QuestionCard';
 import QuestionSheet from '@/components/exam/QuestionSheet';
 import DraggableAICompanion from '@/components/exam/DraggableAICompanion';
+import MathText from '@/components/MathText';
 import { useAntiCheating, ViolationType } from '@/hooks/useAntiCheating';
 import CryptoJS from 'crypto-js';
 
@@ -617,7 +618,7 @@ export default function ExamPage() {
                                             }`}
                                             onClick={() => handleAnswer(opt.id)}
                                         >
-                                            {optionText}
+                                            {optionText ? <MathText text={optionText} /> : ''}
                                         </button>
                                     );
                                 })}

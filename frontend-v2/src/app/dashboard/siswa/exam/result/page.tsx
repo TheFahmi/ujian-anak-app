@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCompanionById } from '@/utils/aiCompanions';
 import { PartyPopper, Sparkles, Trophy, Star, FileText } from 'lucide-react';
+import MathText from '@/components/MathText';
 
 interface ExamResult {
     success: boolean;
@@ -234,7 +235,7 @@ export default function ExamResultPage() {
                                 <div key={r.id} className={`bg-white p-3 px-4 rounded-2xl border-2 ${r.correct ? 'border-[#e2e8f0] shadow-[2px_2px_0px_#e2e8f0]' : 'border-red-200 shadow-[2px_2px_0px_#fecaca]'} min-h-14`}>
                                     <div className="flex items-center justify-between gap-4">
                                         <p className="flex-1 whitespace-nowrap overflow-hidden text-ellipsis text-sm font-medium text-[#0f172a] m-0">
-                                            {originalQ ? originalQ.pertanyaan : `Pertanyaan ${idx + 1}`}
+                                            {originalQ ? <MathText text={originalQ.pertanyaan || ''} /> : `Pertanyaan ${idx + 1}`}
                                         </p>
                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border-2 ${
                                             r.correct 

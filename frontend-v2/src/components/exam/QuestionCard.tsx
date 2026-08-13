@@ -1,4 +1,5 @@
 import React from 'react';
+import MathText from '@/components/MathText';
 
 interface QuestionCardProps {
     question: any;
@@ -31,7 +32,7 @@ export default function QuestionCard({
                 Pertanyaan {currentNumber}
             </div>
             <h1 className={`text-[#0f172a] font-bold leading-relaxed text-center pt-4 m-0 ${getFontSizeClass() === 'text-base' ? 'text-xl' : getFontSizeClass()}`}>
-                {question.pertanyaan}
+                <MathText text={question.pertanyaan || ''} />
             </h1>
 
             {question.tipe === 'isian' && (

@@ -341,33 +341,44 @@ export class AdminService {
         const promptMap = {
             pilihan_ganda: `Generate ${count} soal pilihan ganda (multiple choice) untuk tingkat SD tentang: ${topic}
 
-Untuk SETIAP soal, tulis penjelasan singkat (1-2 kalimat) yang menjelaskan KENAPA jawaban yang benar itu benar — penjelasan ini akan ditampilkan ke siswa saat mereka menjawab salah.
+PENTING: Jika soal melibatkan rumus matematika (pecahan, akar, pangkat, persamaan), tulis menggunakan format LaTeX yang dibungkus tanda dollar, contoh:
+- Pecahan: \\( \\frac{1}{2} \\) atau tulis \$\\frac{1}{2}\$
+- Pangkat: \$x^2\$
+- Akar: \$\\sqrt{16}\$
+- Soal campuran: "Hitunglah \$\\frac{2}{3} + \\frac{1}{6}\$"
+
+Untuk SETIAP soal, tulis penjelasan singkat (1-2 kalimat) yang menjelaskan KENAPA jawaban yang benar itu benar — penjelasan ini akan ditampilkan ke siswa saat mereka menjawab salah. Gunakan LaTeX juga di penjelasan jika perlu.
 
 Format output JSON array (JANGAN tambahkan markdown/backticks):
 [
   {
-    "pertanyaan": "teks soal",
+    "pertanyaan": "teks soal (boleh berisi LaTeX dengan tanda dollar)",
     "pilihan": [
-      {"id": "A", "text": "pilihan A"},
+      {"id": "A", "text": "pilihan A (boleh LaTeX)"},
       {"id": "B", "text": "pilihan B"},
       {"id": "C", "text": "pilihan C"},
       {"id": "D", "text": "pilihan D"}
     ],
     "jawaban_benar": "A",
-    "penjelasan": "penjelasan singkat kenapa jawaban A benar (1-2 kalimat, bahasa anak SD)",
+    "penjelasan": "penjelasan singkat kenapa jawaban A benar (1-2 kalimat, bahasa anak SD, boleh LaTeX)",
     "tipe": "pilihan_ganda"
   }
 ]`,
             isian: `Generate ${count} soal essay untuk tingkat SD tentang: ${topic}
 
-Untuk SETIAP soal, tulis kunci jawaban (jawaban referensi yang benar) — dipakai AI sebagai acuan menilai jawaban siswa.
+PENTING: Jika soal melibatkan rumus matematika (pecahan, akar, pangkat, persamaan), tulis menggunakan format LaTeX yang dibungkus tanda dollar, contoh:
+- Pecahan: \\( \\frac{1}{2} \\) atau tulis \$\\frac{1}{2}\$
+- Pangkat: \$x^2\$
+- Akar: \$\\sqrt{16}\$
+
+Untuk SETIAP soal, tulis kunci jawaban (jawaban referensi yang benar) — dipakai AI sebagai acuan menilai jawaban siswa. Gunakan LaTeX di kunci jawaban jika perlu.
 
 Format output JSON array (JANGAN tambahkan markdown/backticks):
 [
   {
-    "pertanyaan": "teks soal",
+    "pertanyaan": "teks soal (boleh berisi LaTeX dengan tanda dollar)",
     "rubrik_penilaian": "kriteria penilaian detail",
-    "kunci_jawaban": "jawaban referensi yang benar dan lengkap",
+    "kunci_jawaban": "jawaban referensi yang benar dan lengkap (boleh LaTeX)",
     "tipe": "isian"
   }
 ]`
