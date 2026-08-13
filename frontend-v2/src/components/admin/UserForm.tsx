@@ -5,9 +5,11 @@ interface UserFormProps {
     onSubmit: (data: any) => void;
     onCancel: () => void;
     isEditing: boolean;
+    subjects?: Array<{ id: string; nama: string; kelas: string }>;
+    users?: Array<{ id: string; username: string; nama?: string; kelas?: string; role?: string }>;
 }
 
-export default function UserForm({ initialData, onSubmit, onCancel, isEditing }: UserFormProps) {
+export default function UserForm({ initialData, onSubmit, onCancel, isEditing, subjects = [], users = [] }: UserFormProps) {
     const [formData, setFormData] = useState({
         id: '',
         username: '',
@@ -90,28 +92,97 @@ export default function UserForm({ initialData, onSubmit, onCancel, isEditing }:
                 </div>
 
                 {formData.role === 'orangtua' && (
-                    <input
-                        className="w-full p-3 border-2 border-gray-200 rounded-lg text-base focus:outline-none focus:border-[#6c5ce7] mb-4"
-                        placeholder="ID Anak (pisahkan dengan koma, misal: siswa1,siswa2)"
-                        value={formData.children}
-                        onChange={e => setFormData({ ...formData, children: e.target.value })}
-                    />
+                    <div className="mb-4">
+                        <label className="block text-xs font-semibold text-gray-500 mb-2">
+                            Anak (centang siswa yang menjadi anak)
+                        </label>
+                        {(() => {
+                            const siswaList = users.filter(u => u.role === 'siswa');
+                            if (siswaList.length === 0) {
+                                return <p className="text-sm text-gray-400">Belum ada siswa. Buat dulu user role Siswa.</p>;
+                            }
+                            const selected = (formData.children || '').split(',').map(s => s.trim()).filter(Boolean);
+                            return (
+                                <div className="flex flex-wrap gap-2">
+                                    {siswaList.map(s => {
+                                        const isSelected = selected.includes(s.id);
+                                        return (
+                                            <button
+                                                key={s.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    const next = isSelected
+                                                        ? selected.filter(id => id !== s.id)
+                                                        : [...selected, s.id];
+                                                    setFormData({ ...formData, children: next.join(',') });
+                                                }}
+                                                className={`px-3 py-2 rounded-xl border-2 text-sm font-bold transition-all ${
+                                                    isSelected
+                                                        ? 'bg-[#6c5ce7] border-[#6c5ce7] text-white'
+                                                        : 'bg-white border-gray-200 text-gray-600 hover:border-[#6c5ce7]'
+                                                }`}
+                                            >
+                                                {s.username} {s.kelas ? `(${s.kelas})` : ''}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })()}
+                    </div>
                 )}
 
-                <input
-                    className="w-full p-3 border-2 border-gray-200 rounded-lg text-base focus:outline-none focus:border-[#6c5ce7] mt-4"
-                    placeholder="ID Mata Pelajaran (pisahkan dengan koma, misal: 1,2)"
-                    value={formData.mata_pelajaran}
-                    onChange={e => setFormData({ ...formData, mata_pelajaran: e.target.value })}
-                />
+                {/* Multi-select Mapel (untuk guru) */}
+                {formData.role === 'guru' && (
+                    <div className="mt-4">
+                        <label className="block text-xs font-semibold text-gray-500 mb-2">
+                            Mata Pelajaran (centang yang dipegang guru)
+                        </label>
+                        {subjects.length === 0 ? (
+                            <p className="text-sm text-gray-400">Belum ada mapel. Buat dulu di tab Mapel.</p>
+                        ) : (
+                            <div className="flex flex-wrap gap-2">
+                                {subjects.map(s => {
+                                    const isSelected = (formData.mata_pelajaran || '').split(',').map(x => x.trim()).filter(Boolean).includes(s.id);
+                                    return (
+                                        <button
+                                            key={s.id}
+                                            type="button"
+                                            onClick={() => {
+                                                const ids = (formData.mata_pelajaran || '').split(',').map(x => x.trim()).filter(Boolean);
+                                                const next = isSelected
+                                                    ? ids.filter(id => id !== s.id)
+                                                    : [...ids, s.id];
+                                                setFormData({ ...formData, mata_pelajaran: next.join(',') });
+                                            }}
+                                            className={`px-3 py-2 rounded-xl border-2 text-sm font-bold transition-all ${
+                                                isSelected
+                                                    ? 'bg-[#6c5ce7] border-[#6c5ce7] text-white'
+                                                    : 'bg-white border-gray-200 text-gray-600 hover:border-[#6c5ce7]'
+                                            }`}
+                                        >
+                                            {s.nama} {s.kelas ? `(${s.kelas})` : ''}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {formData.role === 'guru' && (
-                    <input
-                        className="w-full p-3 border-2 border-gray-200 rounded-lg text-base focus:outline-none focus:border-[#6c5ce7] mt-4"
-                        placeholder="Kelas yang dipegang (pisahkan dengan koma, misal: Kelas 4,Kelas 5) — kosongkan = semua kelas"
-                        value={formData.kelas_assign}
-                        onChange={e => setFormData({ ...formData, kelas_assign: e.target.value })}
-                    />
+                    <div className="mt-4">
+                        <label className="block text-xs font-semibold text-gray-500 mb-2">
+                            Kelas yang dipegang (centang; kosongkan = semua kelas)
+                        </label>
+                        <input
+                            className="w-full p-3 border-2 border-gray-200 rounded-lg text-base focus:outline-none focus:border-[#6c5ce7]"
+                            placeholder="Kelas 4, Kelas 5 (pisahkan dengan koma)"
+                            value={formData.kelas_assign}
+                            onChange={e => setFormData({ ...formData, kelas_assign: e.target.value })}
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Tulis nama kelas, contoh: Kelas 4,Kelas 5</p>
+                    </div>
                 )}
 
                 <div className="flex flex-wrap gap-3 sm:gap-4 mt-6">

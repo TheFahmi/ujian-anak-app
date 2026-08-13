@@ -38,7 +38,7 @@ function AdminDashboardContent() {
     // Form States
     const [isEditingSubject, setIsEditingSubject] = useState(false);
     const [editingSubject, setEditingSubject] = useState<any>(null);
-    const [expandedSubjectId, setExpandedSubjectId] = useState<number | null>(null);
+    const [expandedSubjectId, setExpandedSubjectId] = useState<string | null>(null);
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -64,7 +64,10 @@ function AdminDashboardContent() {
         try {
             const res = await fetch('/api/admin/subjects');
             const data = await res.json();
-            setSubjects(data || []);
+            // an error response is a truthy object, not a list: storing it
+            // crashes the render on .map
+            if (!res.ok || !Array.isArray(data)) throw new Error(data?.message || 'Bad response');
+            setSubjects(data);
             setSubjectsLoaded(true);
         } catch (err) {
             console.error(err);
@@ -80,7 +83,10 @@ function AdminDashboardContent() {
         try {
             const res = await fetch('/api/admin/users');
             const data = await res.json();
-            setUsers(data || []);
+            // an error response is a truthy object, not a list: storing it
+            // crashes the render on .map
+            if (!res.ok || !Array.isArray(data)) throw new Error(data?.message || 'Bad response');
+            setUsers(data);
             setUsersLoaded(true);
         } catch (err) {
             console.error(err);
@@ -96,7 +102,10 @@ function AdminDashboardContent() {
         try {
             const res = await fetch('/api/admin/results');
             const data = await res.json();
-            setResults(data || []);
+            // an error response is a truthy object, not a list: storing it
+            // crashes the render on .map
+            if (!res.ok || !Array.isArray(data)) throw new Error(data?.message || 'Bad response');
+            setResults(data);
             setResultsLoaded(true);
         } catch (err) {
             console.error(err);
@@ -165,21 +174,20 @@ function AdminDashboardContent() {
     // --- SUBJECT MANAGEMENT (using dedicated API) ---
     const handleSubjectSubmit = async (formData: any) => {
         try {
-            const id = parseInt(formData.id) || Date.now();
-            const subjectToSave = { ...formData, id };
-
             let res;
             if (isEditingSubject) {
+                const id = formData.id;
                 res = await fetch(`/api/admin/subjects/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(subjectToSave),
+                    body: JSON.stringify({ ...formData, id }),
                 });
             } else {
+                // ID digenerate backend, jangan kirim id
                 res = await fetch('/api/admin/subjects', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(subjectToSave),
+                    body: JSON.stringify({ nama: formData.nama, kelas: formData.kelas, soal: formData.soal || [] }),
                 });
             }
 
@@ -197,7 +205,7 @@ function AdminDashboardContent() {
         }
     };
 
-    const handleDeleteSubject = async (id: number) => {
+    const handleDeleteSubject = async (id: string) => {
         const confirmed = await confirm({
             title: 'Hapus Mata Pelajaran?',
             message: 'Yakin ingin menghapus mata pelajaran ini? Semua soal di dalamnya akan ikut terhapus.',
@@ -220,7 +228,7 @@ function AdminDashboardContent() {
         }
     };
 
-    const handleUpdateSubjectQuestions = async (subjectId: number, updatedQuestions: any[]) => {
+    const handleUpdateSubjectQuestions = async (subjectId: string, updatedQuestions: any[]) => {
         const subject = subjects.find(s => s.id === subjectId);
         if (!subject) return;
 
@@ -232,13 +240,15 @@ function AdminDashboardContent() {
             });
 
             if (res.ok) {
-                addToast('Soal berhasil diupdate!', 'success');
-                fetchSubjects();
+                addToast('Soal berhasil disimpan!', 'success');
+                await fetchSubjects();
             } else {
-                addToast('Gagal update soal', 'error');
+                addToast('Gagal menyimpan soal', 'error');
+                throw new Error('save failed');
             }
         } catch (err) {
-            addToast('Gagal update soal', 'error');
+            addToast('Gagal menyimpan soal', 'error');
+            throw err;
         }
     };
 
@@ -421,7 +431,8 @@ function AdminDashboardContent() {
 
     return (
         <div className="min-h-screen bg-[#f8f9fa] font-['Segoe_UI',sans-serif] md:pl-64 pb-20 md:pb-0">
-            <AdminSidebar activeTab={activeTab} setActiveTab={handleTabChange} onLogout={logout} />
+            <AdminSidebar activeTab={activeTab} setActiveTab={handleTabChange} onLogout={logout}
+                isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             <AdminHeader title={getTitle()} toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} onLogout={logout} />
 
             <main className="p-3 sm:p-6 max-w-7xl mx-auto">
@@ -611,6 +622,8 @@ function AdminDashboardContent() {
                             isEditing={isEditingUser}
                             onSubmit={handleUserSubmit}
                             onCancel={() => { setIsEditingUser(false); setEditingUser(null); }}
+                            subjects={subjects}
+                            users={users}
                         />
 
                         <div className="bg-white rounded-[15px] shadow-sm overflow-hidden">
