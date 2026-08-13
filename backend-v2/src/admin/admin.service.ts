@@ -511,4 +511,199 @@ Format output JSON array (JANGAN tambahkan markdown/backticks):
         console.error('Generate questions failed after retries:', lastError);
         throw new BadRequestException('Gagal generate soal. Coba lagi.');
     }
+
+    // Generate questions from PDF material (teacher uploads lesson PDF,
+    // AI reads the content and creates questions based on the material)
+    async generateQuestionsFromPdf(fileBuffer: Buffer, type: string, count: number) {
+        const apiUrl = this.configService.get<string>('PECUT_AI_URL') || 'https://llm.mfah.me/v1/chat/completions';
+        const apiToken = this.configService.get<string>('PECUT_AI_TOKEN');
+
+        if (!apiToken) {
+            throw new BadRequestException('AI service not configured');
+        }
+
+        // Extract text from PDF (pdf-parse v2 API: PDFParse class + load/getText)
+        let materialText: string;
+        try {
+            const pdfModule = await import('pdf-parse');
+            const PDFParse = (pdfModule as any).PDFParse || (pdfModule as any).default;
+            const parser = new PDFParse({ data: fileBuffer });
+            await parser.load();
+            const result = await parser.getText();
+            const pages = result?.pages || [];
+            materialText = pages.map((p: any) => p.text || '').join('\n');
+        } catch (error) {
+            console.error('PDF parse error:', error);
+            throw new BadRequestException('Gagal membaca PDF. Pastikan file valid.');
+        }
+
+        if (!materialText || materialText.trim().length < 20) {
+            throw new BadRequestException('PDF tidak berisi teks yang cukup. Pastikan file berisi materi.');
+        }
+
+        // Limit material text to keep prompt reasonable (roughly 12k chars)
+        const trimmedMaterial = materialText.slice(0, 12000);
+
+        const promptMap = {
+            pilihan_ganda: `Guru mengunggah materi pelajaran berikut (tingkat SD). Baca dan pahami materi ini, lalu buat ${count} soal pilihan ganda berdasarkan ISI MATERI tersebut.
+
+MATERI:
+"""
+${trimmedMaterial}
+"""
+
+PENTING: Soal harus benar-benar berdasarkan materi di atas — jangan membuat soal di luar materi. Jika materi mengandung rumus matematika (pecahan, akar, pangkat, persamaan), tulis menggunakan format LaTeX yang dibungkus tanda dollar, contoh:
+- Pecahan: \\\\( \\\\frac{1}{2} \\\\) atau tulis \\$\\\\frac{1}{2}\\$
+- Pangkat: \\$x^2\\$
+- Akar: \\$\\\\sqrt{16}\\$
+- Perkalian/geometri: "Luas = \\$5 \\\\times 5 = 25\\$ cm²" — WAJIB pakai \\$...\\$ dan \\\\times untuk kali
+
+PENTING - DIAGRAM: Jika soal tentang BANGUN DATAR / GEOMETRI (persegi, persegi panjang, segitiga, lingkaran, kubus, dll), buat diagram SVG sederhana dan sertakan di field "diagram_svg". Diagram harus:
+1. Hanya tag SVG murni (mulai <svg> dan akhiri </svg>), TANPA style, script, atau class
+2. Gunakan viewBox="0 0 200 150"
+3. Gambar bentuk dengan <rect>, <circle>, <polygon>, <path> atau <line>
+4. Label sisi dengan <text> (misal "s = 5 cm"), warna teks gelap (#333)
+5. Garis bentuk warna biru (#2563eb) tebal 2-3, area diisi warna terang
+6. Maksimal ~15 elemen, sederhana dan jelas untuk anak SD
+
+CONTOH diagram_svg untuk soal persegi (TIRU pola ini, sesuaikan ukuran/teks):
+<svg viewBox="0 0 200 150"><rect x="45" y="10" width="110" height="110" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/><text x="100" y="145" text-anchor="middle" font-size="14" fill="#333">s = 5 cm</text></svg>
+
+Untuk SETIAP soal, tulis penjelasan singkat (1-2 kalimat) yang menjelaskan KENAPA jawaban yang benar itu benar — penjelasan ini akan ditampilkan ke siswa saat mereka menjawab salah. Gunakan LaTeX juga di penjelasan jika perlu.
+
+Format output JSON array (JANGAN tambahkan markdown/backticks):
+[
+  {
+    "pertanyaan": "teks soal (boleh berisi LaTeX dengan tanda dollar)",
+    "pilihan": [
+      {"id": "A", "text": "pilihan A (boleh LaTeX)"},
+      {"id": "B", "text": "pilihan B"},
+      {"id": "C", "text": "pilihan C"},
+      {"id": "D", "text": "pilihan D"}
+    ],
+    "jawaban_benar": "A",
+    "penjelasan": "penjelasan singkat kenapa jawaban A benar (1-2 kalimat, bahasa anak SD, boleh LaTeX)",
+    "diagram_svg": "SVG diagram bangun datar (hanya untuk soal geometri, selain itu null atau hilangkan)",
+    "tipe": "pilihan_ganda"
+  }
+]`,
+            isian: `Guru mengunggah materi pelajaran berikut (tingkat SD). Baca dan pahami materi ini, lalu buat ${count} soal essay berdasarkan ISI MATERI tersebut.
+
+MATERI:
+"""
+${trimmedMaterial}
+"""
+
+PENTING: Soal harus benar-benar berdasarkan materi di atas — jangan membuat soal di luar materi. Jika materi mengandung rumus matematika (pecahan, akar, pangkat, persamaan), tulis menggunakan format LaTeX yang dibungkus tanda dollar, contoh:
+- Pecahan: \\\\( \\\\frac{1}{2} \\\\) atau tulis \\$\\\\frac{1}{2}\\$
+- Pangkat: \\$x^2\\$
+- Akar: \\$\\\\sqrt{16}\\$
+
+PENTING - DIAGRAM: Jika soal tentang BANGUN DATAR / GEOMETRI (persegi, persegi panjang, segitiga, lingkaran, kubus, dll), buat diagram SVG sederhana dan sertakan di field "diagram_svg". Diagram harus:
+1. Hanya tag SVG murni (mulai <svg> dan akhiri </svg>), TANPA style, script, atau class
+2. Gunakan viewBox="0 0 200 150"
+3. Maksimal ~15 elemen, sederhana dan jelas untuk anak SD
+
+Untuk SETIAP soal, tulis kunci jawaban (jawaban referensi yang benar) — dipakai AI sebagai acuan menilai jawaban siswa. Gunakan LaTeX di kunci jawaban jika perlu.
+
+Format output JSON array (JANGAN tambahkan markdown/backticks):
+[
+  {
+    "pertanyaan": "teks soal (boleh berisi LaTeX dengan tanda dollar)",
+    "rubrik_penilaian": "kriteria penilaian detail",
+    "kunci_jawaban": "jawaban referensi yang benar dan lengkap (boleh LaTeX)",
+    "diagram_svg": "SVG diagram bangun datar (hanya untuk soal geometri, selain itu null atau hilangkan)",
+    "tipe": "isian"
+  }
+]`
+        };
+
+        const prompt = promptMap[type] || promptMap.pilihan_ganda;
+
+        const BUDGET_MS = 90_000;
+        const deadline = Date.now() + BUDGET_MS;
+        const MAX_ATTEMPTS = 3;
+        let lastError: unknown;
+
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            const remaining = deadline - Date.now();
+            if (remaining < 5000) break;
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), remaining);
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiToken}`
+                    },
+                    body: JSON.stringify({
+                        model: 'pecut-ai',
+                        messages: [
+                            { role: 'system', content: 'Kamu adalah guru SD yang membuat soal dari materi pelajaran. Output HANYA JSON array, tanpa markdown atau penjelasan tambahan.' },
+                            { role: 'user', content: prompt }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 3000
+                    }),
+                    signal: controller.signal,
+                });
+
+                if (!response.ok) {
+                    console.error('Pecut AI error:', response.status, await response.text());
+                    throw new Error(`Pecut AI API error: ${response.status}`);
+                }
+
+                const rawText = await response.text();
+                console.log('Raw AI response length:', rawText.length);
+
+                if (!rawText || rawText.trim().length === 0) {
+                    throw new Error('Empty AI response');
+                }
+
+                const responseText = rawText.replace(/data:\s*\[DONE\]\s*$/, '').trim();
+                const data = JSON.parse(responseText);
+
+                if (data.error) {
+                    throw new Error(`Pecut AI upstream error: ${data.error.message || JSON.stringify(data.error)}`);
+                }
+
+                const content = data.choices?.[0]?.message?.content;
+
+                if (!content) {
+                    throw new Error('Empty AI response');
+                }
+
+                const jsonText = content.trim()
+                    .replace(/^```json?\s*/i, '')
+                    .replace(/```\s*$/, '')
+                    .trim();
+
+                const questions = JSON.parse(jsonText);
+
+                if (!Array.isArray(questions)) {
+                    throw new Error('Invalid response format');
+                }
+
+                const questionsWithIds = questions.map((q) => ({
+                    ...q,
+                    id: randomUUID()
+                }));
+
+                return { success: true, questions: questionsWithIds };
+            } catch (error) {
+                lastError = error;
+                console.error(`Generate questions from PDF error (attempt ${attempt}/${MAX_ATTEMPTS}):`, error);
+                if (attempt < MAX_ATTEMPTS) {
+                    await new Promise((r) => setTimeout(r, 2000 * attempt));
+                }
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        }
+
+        console.error('Generate questions from PDF failed after retries:', lastError);
+        throw new BadRequestException('Gagal generate soal dari PDF. Coba lagi.');
+    }
 }

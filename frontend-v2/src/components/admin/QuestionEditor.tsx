@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import WysiwygEditor from '@/components/WysiwygEditor';
 
 interface QuestionEditorProps {
     questions: any[];
@@ -22,6 +23,8 @@ export default function QuestionEditor({ questions, onUpdate, subjectName }: Que
         type: 'pilihan_ganda' as 'pilihan_ganda' | 'isian',
         count: 5
     });
+    const [generateMode, setGenerateMode] = useState<'topic' | 'pdf'>('topic');
+    const [pdfFile, setPdfFile] = useState<File | null>(null);
     const lastQuestionRef = useRef<HTMLInputElement | null>(null);
     const focusNext = useRef(false);
 
@@ -154,8 +157,48 @@ export default function QuestionEditor({ questions, onUpdate, subjectName }: Que
         }
     };
 
-    const btnGrey = 'bg-[#dfe6e9] text-[#2d3436] px-4 py-2.5 sm:px-6 sm:py-3 rounded-[10px] border-none cursor-pointer font-semibold transition-all duration-200 hover:bg-[#b2bec3] text-sm sm:text-base';
+    const handleGenerateFromPdf = async () => {
+        if (!pdfFile) {
+            alert('Pilih file PDF materi dulu');
+            return;
+        }
 
+        setGenerating(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', pdfFile);
+            formData.append('type', generateConfig.type);
+            formData.append('count', String(generateConfig.count));
+
+            const res = await fetch('/api/admin/generate-questions/pdf', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || 'Generate failed');
+            }
+
+            const generatedQuestions = data.questions.map((q: any, idx: number) => ({
+                ...q,
+                id: Date.now() + idx
+            }));
+
+            edit(d => [...d, ...generatedQuestions]);
+            setShowGenerateModal(false);
+            setPdfFile(null);
+            setGenerateConfig({ topic: '', type: 'pilihan_ganda', count: 5 });
+            setGenerateMode('topic');
+        } catch (err) {
+            console.error(err);
+            alert('Gagal generate soal dari PDF. Coba lagi.');
+        } finally {
+            setGenerating(false);
+        }
+    };
+
+    const btnGrey = 'bg-[#dfe6e9] text-[#2d3436] px-4 py-2.5 sm:px-6 sm:py-3 rounded-[10px] border-none cursor-pointer font-semibold transition-all duration-200 hover:bg-[#b2bec3] text-sm sm:text-base';
     return (
         <div className="bg-white p-4 sm:p-8 rounded-[15px] shadow-[0_4px_15px_rgba(0,0,0,0.05)] mb-8">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -189,19 +232,20 @@ export default function QuestionEditor({ questions, onUpdate, subjectName }: Que
                                 Hapus
                             </button>
                         </div>
-                        <input
-                            ref={qIndex === draft.length - 1 ? lastQuestionRef : undefined}
-                            className="flex-1 p-2.5 sm:p-3 border-2 border-gray-200 rounded-lg text-sm sm:text-base focus:outline-none focus:border-[#6c5ce7]"
-                            value={q.pertanyaan || ''}
-                            onChange={e => handleUpdateQuestion(qIndex, 'pertanyaan', e.target.value)}
-                            placeholder="Tulis pertanyaan di sini"
-                        />
                         <button
                             className="hidden sm:block bg-[#dfe6e9] text-[#2d3436] px-4 py-2 rounded-lg border-none cursor-pointer font-semibold transition-all duration-200 hover:bg-[#b2bec3]"
                             onClick={() => handleDeleteQuestion(qIndex)}
                         >
                             Hapus
                         </button>
+                    </div>
+                    <div className="mb-3">
+                        <WysiwygEditor
+                            value={q.pertanyaan || ''}
+                            onChange={v => handleUpdateQuestion(qIndex, 'pertanyaan', v)}
+                            placeholder="Tulis pertanyaan di sini (bisa tebal, miring, rumus, gambar)"
+                            minHeight={80}
+                        />
                     </div>
 
                     {(q.tipe === 'isian') ? (
@@ -233,30 +277,33 @@ export default function QuestionEditor({ questions, onUpdate, subjectName }: Que
                                     option no longer means a separate dropdown trip. */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                                     {q.pilihan.map((opt: any, optIndex: number) => (
-                                        <label
+                                        <div
                                             key={opt.id}
-                                            className={`flex items-center gap-2 p-2 rounded-lg border-2 transition-colors cursor-pointer ${
+                                            className={`p-2 rounded-lg border-2 transition-colors ${
                                                 q.jawaban_benar === opt.id
                                                     ? 'border-[#00b894] bg-[#00b894]/5'
-                                                    : 'border-transparent'
+                                                    : 'border-gray-200 bg-white'
                                             }`}
                                         >
-                                            <input
-                                                type="radio"
-                                                name={`benar-${q.id ?? qIndex}`}
-                                                checked={q.jawaban_benar === opt.id}
-                                                onChange={() => handleUpdateQuestion(qIndex, 'jawaban_benar', opt.id)}
-                                                className="w-4 h-4 flex-none accent-[#00b894]"
-                                                aria-label={`Tandai pilihan ${opt.id} sebagai jawaban benar`}
-                                            />
-                                            <span className="font-bold text-gray-500 w-4 flex-none">{opt.id}</span>
-                                            <input
-                                                className="w-full p-2.5 border-2 border-gray-200 rounded-lg text-base bg-white focus:outline-none focus:border-[#6c5ce7]"
+                                            <div className="flex items-center gap-2 mb-1.5">
+                                                <input
+                                                    type="radio"
+                                                    name={`benar-${q.id ?? qIndex}`}
+                                                    checked={q.jawaban_benar === opt.id}
+                                                    onChange={() => handleUpdateQuestion(qIndex, 'jawaban_benar', opt.id)}
+                                                    className="w-4 h-4 flex-none accent-[#00b894]"
+                                                    aria-label={`Tandai pilihan ${opt.id} sebagai jawaban benar`}
+                                                />
+                                                <span className="font-bold text-gray-500 flex-none">{opt.id}</span>
+                                                <span className="text-[10px] text-gray-400">klik bulatan = jawaban benar</span>
+                                            </div>
+                                            <WysiwygEditor
                                                 value={opt.text || ''}
-                                                onChange={e => handleUpdateOption(qIndex, optIndex, e.target.value)}
-                                                placeholder={`Jawaban ${opt.id}`}
+                                                onChange={v => handleUpdateOption(qIndex, optIndex, v)}
+                                                placeholder={`Jawaban ${opt.id} (bisa rumus/gambar)`}
+                                                minHeight={48}
                                             />
-                                        </label>
+                                        </div>
                                     ))}
                                 </div>
                                 <p className="mt-2 text-sm text-gray-500">
@@ -339,19 +386,66 @@ export default function QuestionEditor({ questions, onUpdate, subjectName }: Que
                     <div className="bg-[#fdfbf7] rounded-[2rem] p-6 w-full max-w-md shadow-2xl border-4 border-[#0f172a]" onClick={e => e.stopPropagation()}>
                         <h3 className="text-xl font-bold mb-4 text-[#0f172a]">Generate Soal dengan AI</h3>
 
+                        {/* Mode selector */}
+                        <div className="flex gap-2 mb-4">
+                            <button
+                                type="button"
+                                onClick={() => setGenerateMode('topic')}
+                                className={`flex-1 px-3 py-2 rounded-lg border-2 font-semibold text-sm transition-colors ${
+                                    generateMode === 'topic'
+                                        ? 'bg-[#0f172a] text-white border-[#0f172a]'
+                                        : 'bg-white text-[#0f172a] border-[#0f172a]/30 hover:border-[#0f172a]'
+                                }`}
+                            >
+                                Topik / Materi
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setGenerateMode('pdf')}
+                                className={`flex-1 px-3 py-2 rounded-lg border-2 font-semibold text-sm transition-colors ${
+                                    generateMode === 'pdf'
+                                        ? 'bg-[#0f172a] text-white border-[#0f172a]'
+                                        : 'bg-white text-[#0f172a] border-[#0f172a]/30 hover:border-[#0f172a]'
+                                }`}
+                            >
+                                Upload PDF
+                            </button>
+                        </div>
+
                         <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-semibold mb-2 text-[#0f172a]">Topik / Materi</label>
-                                <input
-                                    type="text"
-                                    placeholder="Contoh: Sistem Pencernaan Manusia"
-                                    className="w-full px-4 py-2 rounded-lg border-2 border-[#0f172a]"
-                                    value={generateConfig.topic}
-                                    onChange={e => setGenerateConfig({ ...generateConfig, topic: e.target.value })}
-                                    onKeyDown={e => e.key === 'Enter' && handleGenerateQuestions()}
-                                    autoFocus
-                                />
-                            </div>
+                            {generateMode === 'topic' ? (
+                                <div>
+                                    <label className="block text-sm font-semibold mb-2 text-[#0f172a]">Topik / Materi</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Contoh: Sistem Pencernaan Manusia"
+                                        className="w-full px-4 py-2 rounded-lg border-2 border-[#0f172a]"
+                                        value={generateConfig.topic}
+                                        onChange={e => setGenerateConfig({ ...generateConfig, topic: e.target.value })}
+                                        onKeyDown={e => e.key === 'Enter' && handleGenerateQuestions()}
+                                        autoFocus
+                                    />
+                                </div>
+                            ) : (
+                                <div>
+                                    <label className="block text-sm font-semibold mb-2 text-[#0f172a]">File PDF Materi</label>
+                                    <input
+                                        type="file"
+                                        accept="application/pdf,.pdf"
+                                        className="w-full px-4 py-2 rounded-lg border-2 border-[#0f172a] bg-white text-sm"
+                                        onChange={e => {
+                                            const f = e.target.files?.[0] || null;
+                                            setPdfFile(f);
+                                        }}
+                                    />
+                                    <p className="mt-2 text-xs text-[#0f172a]/60">
+                                        Upload materi pelajaran (PDF). AI akan membaca isi materi lalu membuat soal berdasarkan materi tersebut. Maks 10 MB.
+                                    </p>
+                                    {pdfFile && (
+                                        <p className="mt-1 text-xs font-semibold text-green-700">✓ {pdfFile.name}</p>
+                                    )}
+                                </div>
+                            )}
 
                             <div>
                                 <label className="block text-sm font-semibold mb-2 text-[#0f172a]">Tipe Soal</label>
@@ -388,7 +482,7 @@ export default function QuestionEditor({ questions, onUpdate, subjectName }: Que
                             </button>
                             <button
                                 className="flex-1 bg-[#f4c025] text-[#0f172a] px-4 py-2.5 rounded-lg border-2 border-[#0f172a] font-bold disabled:opacity-50"
-                                onClick={handleGenerateQuestions}
+                                onClick={generateMode === 'pdf' ? handleGenerateFromPdf : handleGenerateQuestions}
                                 disabled={generating}
                             >
                                 {generating ? 'Generating...' : 'Generate'}
