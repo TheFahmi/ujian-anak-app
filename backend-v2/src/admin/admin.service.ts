@@ -342,12 +342,25 @@ export class AdminService {
             pilihan_ganda: `Generate ${count} soal pilihan ganda (multiple choice) untuk tingkat SD tentang: ${topic}
 
 PENTING: Jika soal melibatkan rumus matematika (pecahan, akar, pangkat, persamaan), tulis menggunakan format LaTeX yang dibungkus tanda dollar, contoh:
-- Pecahan: \\( \\frac{1}{2} \\) atau tulis \$\\frac{1}{2}\$
-- Pangkat: \$x^2\$
-- Akar: \$\\sqrt{16}\$
-- Soal campuran: "Hitunglah \$\\frac{2}{3} + \\frac{1}{6}\$"
+- Pecahan: \\\\( \\\\frac{1}{2} \\\\) atau tulis \\$\\\\frac{1}{2}\\$
+- Pangkat: \\$x^2\\$
+- Akar: \\$\\\\sqrt{16}\\$
+- Soal campuran: "Hitunglah \\$\\\\frac{2}{3} + \\\\frac{1}{6}\\$"
+- Perkalian/geometri: "Luas = \\$5 \\\\times 5 = 25\\\\$ cm²" — WAJIB pakai \\$...\\$ dan \\\\times untuk kali, JANGAN tulis "5 x 5" atau "5×5" sebagai teks biasa
 
-Untuk SETIAP soal, tulis penjelasan singkat (1-2 kalimat) yang menjelaskan KENAPA jawaban yang benar itu benar — penjelasan ini akan ditampilkan ke siswa saat mereka menjawab salah. Gunakan LaTeX juga di penjelasan jika perlu.
+PENTING - DIAGRAM: Jika soal tentang BANGUN DATAR / GEOMETRI (persegi, persegi panjang, segitiga, lingkaran, kubus, dll), buat diagram SVG sederhana dan sertakan di field "diagram_svg". Diagram harus:
+1. Hanya tag SVG murni (mulai <svg> dan akhiri </svg>), TANPA style, script, atau class
+2. Gunakan viewBox="0 0 200 150"
+3. Gambar bentuk dengan <rect>, <circle>, <polygon>, <path> atau <line>
+4. Label sisi dengan <text> (misal "s = 5 cm"), warna teks gelap (#333)
+5. Garis bentuk warna biru (#2563eb) tebal 2-3, area diisi warna terang (misal #dbeafe untuk persegi, #fef3c7 untuk segitiga)
+6. Sertakan simbol sudut siku-siku (kotak kecil) jika relevan
+7. Maksimal ~15 elemen, sederhana dan jelas untuk anak SD
+
+CONTOH diagram_svg untuk soal persegi (TIRU pola ini, sesuaikan ukuran/teks):
+<svg viewBox="0 0 200 150"><rect x="45" y="10" width="110" height="110" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/><text x="100" y="145" text-anchor="middle" font-size="14" fill="#333">s = 5 cm</text><line x1="45" y1="10" x2="155" y2="10" stroke="#333" stroke-width="1" stroke-dasharray="4 3"/><text x="100" y="0" text-anchor="middle" font-size="12" fill="#333">s</text></svg>
+
+Untuk SETIAP soal, tulis penjelasan singkat (1-2 kalimat) yang menjelaskan KENAPA jawaban yang benar itu benar — penjelasan ini akan ditampilkan ke siswa saat mereka menjawab salah. Gunakan LaTeX juga di penjelasan jika perlu. Untuk soal geometri, jelaskan juga rumusnya dalam LaTeX (misal luas = \\$s \\\\times s\\$, keliling = \\$4 \\\\times s\\$).
 
 Format output JSON array (JANGAN tambahkan markdown/backticks):
 [
@@ -361,15 +374,29 @@ Format output JSON array (JANGAN tambahkan markdown/backticks):
     ],
     "jawaban_benar": "A",
     "penjelasan": "penjelasan singkat kenapa jawaban A benar (1-2 kalimat, bahasa anak SD, boleh LaTeX)",
+    "diagram_svg": "SVG diagram bangun datar (hanya untuk soal geometri, selain itu null atau hilangkan)",
     "tipe": "pilihan_ganda"
   }
 ]`,
             isian: `Generate ${count} soal essay untuk tingkat SD tentang: ${topic}
 
 PENTING: Jika soal melibatkan rumus matematika (pecahan, akar, pangkat, persamaan), tulis menggunakan format LaTeX yang dibungkus tanda dollar, contoh:
-- Pecahan: \\( \\frac{1}{2} \\) atau tulis \$\\frac{1}{2}\$
-- Pangkat: \$x^2\$
-- Akar: \$\\sqrt{16}\$
+- Pecahan: \\\\( \\\\frac{1}{2} \\\\) atau tulis \\$\\\\frac{1}{2}\\$
+- Pangkat: \\$x^2\\$
+- Akar: \\$\\\\sqrt{16}\\$
+- Perkalian/geometri: "Luas = \\$5 \\\\times 5 = 25\\$ cm²" — WAJIB pakai \\$...\\$ dan \\\\times untuk kali
+
+PENTING - DIAGRAM: Jika soal tentang BANGUN DATAR / GEOMETRI (persegi, persegi panjang, segitiga, lingkaran, kubus, dll), buat diagram SVG sederhana dan sertakan di field "diagram_svg". Diagram harus:
+1. Hanya tag SVG murni (mulai <svg> dan akhiri </svg>), TANPA style, script, atau class
+2. Gunakan viewBox="0 0 200 150"
+3. Gambar bentuk dengan <rect>, <circle>, <polygon>, <path> atau <line>
+4. Label sisi dengan <text> (misal "s = 5 cm"), warna teks gelap (#333)
+5. Garis bentuk warna biru (#2563eb) tebal 2-3, area diisi warna terang (misal #dbeafe untuk persegi, #fef3c7 untuk segitiga)
+6. Sertakan simbol sudut siku-siku (kotak kecil) jika relevan
+7. Maksimal ~15 elemen, sederhana dan jelas untuk anak SD
+
+CONTOH diagram_svg untuk soal persegi (TIRU pola ini, sesuaikan ukuran/teks):
+<svg viewBox="0 0 200 150"><rect x="45" y="10" width="110" height="110" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/><text x="100" y="145" text-anchor="middle" font-size="14" fill="#333">s = 5 cm</text></svg>
 
 Untuk SETIAP soal, tulis kunci jawaban (jawaban referensi yang benar) — dipakai AI sebagai acuan menilai jawaban siswa. Gunakan LaTeX di kunci jawaban jika perlu.
 
@@ -379,6 +406,7 @@ Format output JSON array (JANGAN tambahkan markdown/backticks):
     "pertanyaan": "teks soal (boleh berisi LaTeX dengan tanda dollar)",
     "rubrik_penilaian": "kriteria penilaian detail",
     "kunci_jawaban": "jawaban referensi yang benar dan lengkap (boleh LaTeX)",
+    "diagram_svg": "SVG diagram bangun datar (hanya untuk soal geometri, selain itu null atau hilangkan)",
     "tipe": "isian"
   }
 ]`

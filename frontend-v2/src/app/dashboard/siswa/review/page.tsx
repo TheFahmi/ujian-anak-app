@@ -268,7 +268,7 @@ function ReviewPageContent() {
 
                 {/* Question Card */}
                 <div className="bg-white rounded-[2rem] border-2 border-[#e2e8f0] p-6 shadow-[4px_4px_0px_#e2e8f0] mb-6">
-                    <p className="text-[#0f172a] text-lg font-bold leading-relaxed"><MathText text={currentQuestion.pertanyaan || ''} /></p>
+                    <p className="text-[#0f172a] text-lg font-bold leading-relaxed"><MathText text={currentQuestion.pertanyaan || ''} diagramSvg={currentQuestion.diagram_svg} diagramAlt={currentQuestion.pertanyaan?.slice(0, 60) || 'diagram'} /></p>
                 </div>
 
                 {/* Multiple Choice Options */}
@@ -364,7 +364,7 @@ function ReviewPageContent() {
                                                     <span className="material-symbols-outlined text-lg">lightbulb</span>
                                                     Kenapa jawabanmu salah?
                                                 </p>
-                                                <p className="text-[#0f172a] text-sm leading-relaxed whitespace-pre-wrap">{getAIExplanation()}</p>
+                                                <p className="text-[#0f172a] text-sm leading-relaxed whitespace-pre-wrap"><MathText text={getAIExplanation()} diagramSvg={currentQuestion.diagram_svg} diagramAlt="diagram penjelasan" /></p>
                                             </div>
                                         )}
                                         {questionResult.aiFeedback && (

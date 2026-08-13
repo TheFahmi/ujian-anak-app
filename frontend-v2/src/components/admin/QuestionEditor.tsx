@@ -274,6 +274,18 @@ export default function QuestionEditor({ questions, onUpdate, subjectName }: Que
                                         rows={2}
                                     />
                                 </div>
+                                <div className="mt-3">
+                                    <label className="block text-xs font-semibold text-gray-500 mb-1">
+                                        Diagram SVG (opsional) — untuk soal geometri, tampil di penjelasan
+                                    </label>
+                                    <textarea
+                                        className="w-full p-2.5 rounded-lg border-2 border-gray-200 font-mono text-xs focus:outline-none focus:border-[#6c5ce7]"
+                                        value={q.diagram_svg || ''}
+                                        onChange={e => handleUpdateQuestion(qIndex, 'diagram_svg', e.target.value)}
+                                        placeholder={'<svg viewBox="0 0 200 150"><rect x="50" y="25" width="100" height="100" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/><text x="100" y="150" text-anchor="middle" fill="#333">s = 5 cm</text></svg>'}
+                                        rows={3}
+                                    />
+                                </div>
                             </>
                         )
                     )}

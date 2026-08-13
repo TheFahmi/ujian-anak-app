@@ -32,7 +32,7 @@ export default function QuestionCard({
                 Pertanyaan {currentNumber}
             </div>
             <h1 className={`text-[#0f172a] font-bold leading-relaxed text-center pt-4 m-0 ${getFontSizeClass() === 'text-base' ? 'text-xl' : getFontSizeClass()}`}>
-                <MathText text={question.pertanyaan || ''} />
+                <MathText text={question.pertanyaan || ''} diagramSvg={question.diagram_svg} diagramAlt={question.pertanyaan?.slice(0, 60) || 'diagram'} />
             </h1>
 
             {question.tipe === 'isian' && (

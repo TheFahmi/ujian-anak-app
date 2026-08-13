@@ -36,6 +36,7 @@ interface Question {
     tipe?: string;
     pilihan?: Array<{ id: string; text?: string; jawaban?: string }>;
     penjelasan?: string;
+    diagram_svg?: string;
 }
 
 export default function ExamResultPage() {
@@ -253,7 +254,7 @@ export default function ExamResultPage() {
                                                 <span className="material-symbols-outlined text-sm">lightbulb</span>
                                                 Kenapa salah?
                                             </p>
-                                            <p className="text-[#0f172a] text-xs leading-relaxed whitespace-pre-wrap">{penjelasan}</p>
+                                            <p className="text-[#0f172a] text-xs leading-relaxed whitespace-pre-wrap"><MathText text={penjelasan} diagramSvg={originalQ?.diagram_svg} diagramAlt="diagram penjelasan" /></p>
                                         </div>
                                     )}
                                 </div>

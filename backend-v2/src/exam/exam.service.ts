@@ -73,7 +73,8 @@ export class ExamService {
             pilihan: q.pilihan,
             rubrik_penilaian: q.rubrik_penilaian,
             penjelasan: q.penjelasan,
-            kunci_jawaban: q.kunci_jawaban
+            kunci_jawaban: q.kunci_jawaban,
+            diagram_svg: q.diagram_svg
         }));
 
         let questions: any[];
@@ -231,7 +232,8 @@ export class ExamService {
                     jawaban_benar: originalQ ? originalQ.jawaban_benar : null,
                     rubrik_penilaian: originalQ ? originalQ.rubrik_penilaian : sessionQ.rubrik_penilaian,
                     penjelasan: originalQ ? originalQ.penjelasan : sessionQ.penjelasan,
-                    kunci_jawaban: originalQ ? originalQ.kunci_jawaban : sessionQ.kunci_jawaban
+                    kunci_jawaban: originalQ ? originalQ.kunci_jawaban : sessionQ.kunci_jawaban,
+                    diagram_svg: originalQ ? originalQ.diagram_svg : sessionQ.diagram_svg
                 };
             });
         } else {
@@ -247,7 +249,8 @@ export class ExamService {
                     jawaban_benar: q.jawaban_benar,
                     rubrik_penilaian: q.rubrik_penilaian || '',
                     penjelasan: q.penjelasan,
-                    kunci_jawaban: q.kunci_jawaban
+                    kunci_jawaban: q.kunci_jawaban,
+                    diagram_svg: q.diagram_svg
                 }));
         }
 
@@ -287,6 +290,7 @@ export class ExamService {
                 userAnswer,
                 correctAnswer: q.jawaban_benar,
                 penjelasan,
+                diagramSvg: q.diagram_svg || null,
                 scoreContribution: questionScore
             });
         }
@@ -311,6 +315,7 @@ export class ExamService {
                     aiScore: Math.round(aiScore),
                     aiFeedback: aiFeedback,
                     kunciJawaban: q.kunci_jawaban || null,
+                    diagramSvg: q.diagram_svg || null,
                     scoreContribution: questionScore
                 });
             } catch (err) {
@@ -375,7 +380,8 @@ export class ExamService {
                 pilihan: q.pilihan || [],
                 rubrik_penilaian: q.rubrik_penilaian || '',
                 penjelasan: q.penjelasan,
-                kunci_jawaban: q.kunci_jawaban
+                kunci_jawaban: q.kunci_jawaban,
+                diagram_svg: q.diagram_svg
             }));
 
         // Save result
