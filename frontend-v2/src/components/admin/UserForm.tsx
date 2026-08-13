@@ -14,6 +14,7 @@ export default function UserForm({ initialData, onSubmit, onCancel, isEditing }:
         password: '',
         role: 'siswa',
         kelas: '',
+        kelas_assign: '',
         mata_pelajaran: '',
         children: ''
     });
@@ -22,6 +23,9 @@ export default function UserForm({ initialData, onSubmit, onCancel, isEditing }:
         if (initialData) {
             setFormData({
                 ...initialData,
+                kelas_assign: Array.isArray(initialData.kelas_assign)
+                    ? initialData.kelas_assign.join(',')
+                    : initialData.kelas_assign || '',
                 mata_pelajaran: Array.isArray(initialData.mata_pelajaran)
                     ? initialData.mata_pelajaran.join(',')
                     : initialData.mata_pelajaran || '',
@@ -36,6 +40,7 @@ export default function UserForm({ initialData, onSubmit, onCancel, isEditing }:
         e.preventDefault();
         onSubmit({
             ...formData,
+            kelas_assign: formData.kelas_assign.split(',').map(s => s.trim()).filter(Boolean),
             mata_pelajaran: formData.mata_pelajaran.split(',').map(s => s.trim()).filter(Boolean),
             children: formData.children.split(',').map(s => s.trim()).filter(Boolean)
         });
@@ -99,6 +104,15 @@ export default function UserForm({ initialData, onSubmit, onCancel, isEditing }:
                     value={formData.mata_pelajaran}
                     onChange={e => setFormData({ ...formData, mata_pelajaran: e.target.value })}
                 />
+
+                {formData.role === 'guru' && (
+                    <input
+                        className="w-full p-3 border-2 border-gray-200 rounded-lg text-base focus:outline-none focus:border-[#6c5ce7] mt-4"
+                        placeholder="Kelas yang dipegang (pisahkan dengan koma, misal: Kelas 4,Kelas 5) — kosongkan = semua kelas"
+                        value={formData.kelas_assign}
+                        onChange={e => setFormData({ ...formData, kelas_assign: e.target.value })}
+                    />
+                )}
 
                 <div className="flex flex-wrap gap-3 sm:gap-4 mt-6">
                     <button

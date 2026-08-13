@@ -1,0 +1,158 @@
+// Skema Prisma hasil migrasi dari 9 schema Mongoose (src/schemas/*.ts).
+// Aturan: _id ObjectId -> id String uuid; array embedded -> Json (jsonb).
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  // id aplikasi (UUID) sudah dipakai di seluruh kode & localStorage frontend,
+  // jadi dia yang jadi primary key. _id Mongo lama tidak dipakai siapa pun.
+  id                 String   @id @default(uuid())
+  username           String   @unique
+  password           String
+  // Nullable + unique: user lama (admin, Adifa) tidak punya email.
+  // Postgres mengizinkan banyak baris NULL pada unique index.
+  email              String?  @unique
+  emailTerverifikasi Boolean  @default(false)
+  role               String
+  kelas              String   @default("")
+  mata_pelajaran     String[] @default([])
+  // Kelas yang di-assign ke guru (bisa lebih dari satu). Guru hanya lihat
+  // siswa & hasil dari kelas ini. Kosong = tidak terbatas kelas.
+  kelas_assign       String[] @default([])
+  avatar             String   @default("/images/profil-avatar-dino.png")
+  children           String[] @default([])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  results      Result[]
+  examSessions ExamSession[]
+  reward       Reward?
+  tokenEmails  TokenEmail[]
+}
+
+model Subject {
+  id        String   @id @default(uuid())
+  nama      String   @default("")
+  kelas     String   @default("")
+  durasi    Int      @default(60)
+  // Soal[] (beserta Pilihan[] di dalamnya) -> jsonb
+  soal      Json     @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  examSessions ExamSession[]
+}
+
+model Result {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // ponytail: subjectId sengaja TANPA foreign key. Mongo tidak punya constraint,
+  // dan riwayat ujian harus tetap hidup kalau admin menghapus mata pelajaran
+  // (nama pelajaran sudah disimpan di subjectName). Tambahkan FK + onDelete
+  // Restrict kalau nanti penghapusan subject ingin diblokir.
+  subjectId       String
+  subjectName     String   @default("")
+  score           Int      @default(0)
+  correctCount    Int      @default(0)
+  totalQuestions  Int      @default(0)
+  cheatCount      Int      @default(0)
+  aiCoachFeedback String   @default("")
+  // ResultQuestion[] -> jsonb
+  questions       Json     @default("[]")
+  // ResultAnswer[] -> jsonb
+  results         Json     @default("[]")
+  date            DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, subjectId])
+  @@index([date])
+}
+
+model ExamSession {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  startTime   DateTime @default(now())
+  lastUpdated DateTime @default(now())
+  // Soal[] -> jsonb
+  questions   Json     @default("[]")
+  isLocked    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, subjectId])
+}
+
+model Reward {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coins     Int      @default(0)
+  badges    String[] @default([])
+  // RewardStats (termasuk SubjectStats) -> jsonb
+  stats     Json     @default("{}")
+  inventory String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ShopItem {
+  id          String   @id
+  name        String
+  description String   @default("")
+  cost        Int
+  type        String
+  icon        String
+  rarity      String   @default("common")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model TokenEmail {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // 'verifikasi' | 'reset'
+  jenis       String
+  kedaluwarsa DateTime
+  dipakai     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, jenis])
+}
+
+model TokenSettings {
+  id               String   @id @default(uuid())
+  inputTokenPrice  Float    @default(0.14)
+  outputTokenPrice Float    @default(0.28)
+  updatedAt        DateTime @default(now())
+  updatedBy        String?
+}
+
+model TokenUsage {
+  // ponytail: userId TANPA FK karena data lama punya baris userId="admin"
+  // (bukan id user, melainkan username) yang harus ikut terbawa apa adanya.
+  id           String   @id @default(uuid())
+  userId       String
+  username     String
+  inputTokens  Int
+  outputTokens Int
+  totalTokens  Int
+  model        String   @default("Qwen/Qwen3-235B-A22B")
+  timestamp    DateTime @default(now())
+
+  @@index([timestamp])
+}
