@@ -539,12 +539,9 @@ export class ExamService {
      * Returns null when no tokens configured or AI fails.
      */
     private async generatePGExplanation(question: string, userAnswer: string, correctAnswer: string, pilihan: any[]): Promise<string | null> {
-        const tokens: string[] = [];
-        const token1 = this.configService.get<string>('CHUTES_API_TOKEN');
-        const token2 = this.configService.get<string>('CHUTES_API_TOKEN_2');
-        if (token1) tokens.push(token1);
-        if (token2) tokens.push(token2);
-        if (tokens.length === 0) return null;
+        const apiUrl = this.configService.get<string>('PECUT_AI_URL') || 'https://llm.mfah.me/v1/chat/completions';
+        const apiToken = this.configService.get<string>('PECUT_AI_TOKEN');
+        if (!apiToken) return null;
 
         const findText = (id: string) => {
             const opt = (pilihan || []).find((p: any) => (p.id || p.text) === id);
@@ -562,43 +559,48 @@ Jawaban benar: ${jawabanBenarText}
 
 Jelaskan dalam 1-2 kalimat singkat, ramah, dan mudah dipahami anak SD: KENAPA jawaban yang benar itu benar dan KENAPA jawaban siswa salah. Jangan mengulang soal. Langsung ke penjelasan.`;
 
-        for (const token of tokens) {
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 20000);
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 25000);
 
-                const response = await fetch('https://llm.chutes.ai/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: 'Qwen/Qwen3-235B-A22B',
-                        messages: [{ role: 'user', content: '/no_think\n' + prompt }],
-                        stream: false,
-                        max_tokens: 200,
-                        temperature: 0.5
-                    }),
-                    signal: controller.signal,
-                });
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiToken}`
+                },
+                body: JSON.stringify({
+                    model: 'pecut-ai',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: '/no_think\nKamu adalah guru SD. Jawab SINGKAT dengan 1-2 kalimat, bahasa ramah anak SD.'
+                        },
+                        { role: 'user', content: prompt }
+                    ],
+                    stream: false,
+                    max_tokens: 200,
+                    temperature: 0.5
+                }),
+                signal: controller.signal,
+            });
 
-                clearTimeout(timeoutId);
+            clearTimeout(timeoutId);
 
-                if (!response.ok) {
-                    if (response.status === 402 || response.status === 429) continue;
-                    return null;
-                }
-
-                const data = await response.json();
-                const content = data.choices?.[0]?.message?.content;
-                if (content) {
-                    return this.stripThinkingTags(content);
-                }
-            } catch (err) {
-                console.error('PG explanation error:', err instanceof Error ? err.message : err);
-                continue;
+            if (!response.ok) {
+                console.warn(`PG explanation failed with HTTP ${response.status}`);
+                return null;
             }
+
+            let responseText = await response.text();
+            responseText = responseText.replace(/data:\s*\[DONE\]\s*$/, '').trim();
+            const data = JSON.parse(responseText);
+            const content = data.choices?.[0]?.message?.content;
+            if (content) {
+                return this.stripThinkingTags(content).trim();
+            }
+        } catch (err) {
+            console.error('PG explanation error:', err instanceof Error ? err.message : err);
         }
         return null;
     }
