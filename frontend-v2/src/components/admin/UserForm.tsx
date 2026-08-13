@@ -14,12 +14,15 @@ export default function UserForm({ initialData, onSubmit, onCancel, isEditing, s
         id: '',
         username: '',
         password: '',
+        email: '',
+        emailTerverifikasi: false,
         role: 'siswa',
         kelas: '',
         kelas_assign: '',
         mata_pelajaran: '',
         children: ''
     });
+    const [childSearch, setChildSearch] = useState('');
 
     useEffect(() => {
         if (initialData) {
@@ -94,7 +97,7 @@ export default function UserForm({ initialData, onSubmit, onCancel, isEditing, s
                 {formData.role === 'orangtua' && (
                     <div className="mb-4">
                         <label className="block text-xs font-semibold text-gray-500 mb-2">
-                            Anak (centang siswa yang menjadi anak)
+                            Anak (cari & pilih siswa)
                         </label>
                         {(() => {
                             const siswaList = users.filter(u => u.role === 'siswa');
@@ -102,30 +105,70 @@ export default function UserForm({ initialData, onSubmit, onCancel, isEditing, s
                                 return <p className="text-sm text-gray-400">Belum ada siswa. Buat dulu user role Siswa.</p>;
                             }
                             const selected = (formData.children || '').split(',').map(s => s.trim()).filter(Boolean);
+                            const selectedNames = siswaList
+                                .filter(s => selected.includes(s.id))
+                                .map(s => `${s.username}${s.kelas ? ` (${s.kelas})` : ''}`);
+                            const filtered = siswaList.filter(s =>
+                                s.username.toLowerCase().includes(childSearch.toLowerCase()) ||
+                                (s.kelas || '').toLowerCase().includes(childSearch.toLowerCase())
+                            );
+
                             return (
-                                <div className="flex flex-wrap gap-2">
-                                    {siswaList.map(s => {
-                                        const isSelected = selected.includes(s.id);
-                                        return (
-                                            <button
-                                                key={s.id}
-                                                type="button"
-                                                onClick={() => {
-                                                    const next = isSelected
-                                                        ? selected.filter(id => id !== s.id)
-                                                        : [...selected, s.id];
-                                                    setFormData({ ...formData, children: next.join(',') });
-                                                }}
-                                                className={`px-3 py-2 rounded-xl border-2 text-sm font-bold transition-all ${
-                                                    isSelected
-                                                        ? 'bg-[#6c5ce7] border-[#6c5ce7] text-white'
-                                                        : 'bg-white border-gray-200 text-gray-600 hover:border-[#6c5ce7]'
-                                                }`}
-                                            >
-                                                {s.username} {s.kelas ? `(${s.kelas})` : ''}
-                                            </button>
-                                        );
-                                    })}
+                                <div className="flex flex-wrap items-center gap-2">
+                                    {/* Search input */}
+                                    <input
+                                        type="text"
+                                        placeholder="🔍 Ketik nama / kelas siswa..."
+                                        className="w-full px-3 py-2.5 rounded-lg border-2 border-gray-200 text-sm focus:outline-none focus:border-[#6c5ce7]"
+                                        value={childSearch}
+                                        onChange={e => setChildSearch(e.target.value)}
+                                    />
+                                    {/* Filtered list */}
+                                    {filtered.length > 0 && (
+                                        <div className="w-full max-h-44 overflow-y-auto rounded-lg border border-gray-200 bg-white">
+                                            {filtered.map(s => {
+                                                const isSelected = selected.includes(s.id);
+                                                return (
+                                                    <button
+                                                        key={s.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const next = isSelected
+                                                                ? selected.filter(x => x !== s.id)
+                                                                : [...selected, s.id];
+                                                            setFormData({ ...formData, children: next.join(',') });
+                                                        }}
+                                                        className={`flex w-full items-center justify-between px-3 py-2.5 text-sm transition-colors ${
+                                                            isSelected
+                                                                ? 'bg-[#6c5ce7]/10 text-[#6c5ce7] font-semibold'
+                                                                : 'hover:bg-gray-50'
+                                                        }`}
+                                                    >
+                                                        <span>{s.username} {s.kelas ? `(${s.kelas})` : ''}</span>
+                                                        <span className="text-xs">{isSelected ? '✓ Terpilih' : '+'}</span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                    {filtered.length === 0 && (
+                                        <p className="text-xs text-gray-400 w-full">Tidak ada siswa cocok dengan "{childSearch}".</p>
+                                    )}
+                                    <p className="text-xs text-gray-400 w-full">
+                                        Terpilih ({selected.length}):
+                                    </p>
+                                    {selectedNames.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 w-full">
+                                            {selectedNames.map(name => (
+                                                <span
+                                                    key={name}
+                                                    className="px-3 py-1.5 rounded-xl bg-[#6c5ce7] text-white text-xs font-bold"
+                                                >
+                                                    {name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })()}

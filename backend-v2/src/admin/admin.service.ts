@@ -445,7 +445,7 @@ Format output JSON array (JANGAN tambahkan markdown/backticks):
                             { role: 'user', content: prompt }
                         ],
                         temperature: 0.7,
-                        max_tokens: 3000
+                        max_tokens: 8000
                     }),
                     signal: controller.signal,
                 });
@@ -472,7 +472,14 @@ Format output JSON array (JANGAN tambahkan markdown/backticks):
                     throw new Error(`Pecut AI upstream error: ${data.error.message || JSON.stringify(data.error)}`);
                 }
 
-                const content = data.choices?.[0]?.message?.content;
+                const message = data.choices?.[0]?.message;
+                let content = message?.content;
+
+                // Model reasoning (deepseek-v4-flash) kadang menaruh semua di
+                // reasoning_content dan content kosong — fallback ke sana.
+                if (!content && message?.reasoning_content) {
+                    content = message.reasoning_content;
+                }
 
                 if (!content) {
                     throw new Error('Empty AI response');
@@ -645,7 +652,7 @@ Format output JSON array (JANGAN tambahkan markdown/backticks):
                             { role: 'user', content: prompt }
                         ],
                         temperature: 0.7,
-                        max_tokens: 3000
+                        max_tokens: 8000
                     }),
                     signal: controller.signal,
                 });
@@ -669,7 +676,14 @@ Format output JSON array (JANGAN tambahkan markdown/backticks):
                     throw new Error(`Pecut AI upstream error: ${data.error.message || JSON.stringify(data.error)}`);
                 }
 
-                const content = data.choices?.[0]?.message?.content;
+                const message = data.choices?.[0]?.message;
+                let content = message?.content;
+
+                // Model reasoning (deepseek-v4-flash) kadang menaruh semua di
+                // reasoning_content dan content kosong — fallback ke sana.
+                if (!content && message?.reasoning_content) {
+                    content = message.reasoning_content;
+                }
 
                 if (!content) {
                     throw new Error('Empty AI response');
