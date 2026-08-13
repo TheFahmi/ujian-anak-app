@@ -16,6 +16,12 @@ export class DashboardController {
         return this.dashboardService.getTeacherStudents(userId || '');
     }
 
+    // Progress adaptif siswa utk guru (level + skill per mapel)
+    @Get('guru/adaptif')
+    async getTeacherAdaptiveProgress(@Query('userId') userId?: string) {
+        return this.dashboardService.getTeacherAdaptiveProgress(userId || '');
+    }
+
     // Detail mapel yang di-assign ke guru (soal penuh untuk dikelola)
     @Get('guru/mapel/:subjectId')
     async getTeacherSubject(@Param('subjectId') subjectId: string, @Query('userId') userId?: string) {

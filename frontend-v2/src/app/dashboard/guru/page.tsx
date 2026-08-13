@@ -30,7 +30,7 @@ export default function TeacherDashboardPage() {
     const [kelas, setKelas] = useState<string[]>([]);
     const [siswa, setSiswa] = useState<SiswaInfo[]>([]);
     const [recentActivity, setRecentActivity] = useState<any[]>([]);
-    const [tab, setTab] = useState<'beranda' | 'mapel' | 'siswa'>('beranda');
+    const [tab, setTab] = useState<'beranda' | 'mapel' | 'siswa' | 'adaptif'>('beranda');
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -63,8 +63,21 @@ export default function TeacherDashboardPage() {
         }
     };
 
+    const [adaptifData, setAdaptifData] = useState<any>(null);
+    const loadAdaptif = async () => {
+        if (!user) return;
+        try {
+            const res = await fetch(`/api/dashboard/guru/adaptif?userId=${user.id}`);
+            const data = await res.json();
+            setAdaptifData(data);
+        } catch (error) {
+            console.error('Failed to fetch adaptive progress', error);
+        }
+    };
+
     useEffect(() => {
         if (tab === 'siswa' && user) loadSiswa();
+        if (tab === 'adaptif' && user) loadAdaptif();
     }, [tab, user]);
 
     if (loading) return <div className="p-8 text-center">Loading Dashboard...</div>;
@@ -94,6 +107,7 @@ export default function TeacherDashboardPage() {
                 <button className={navBtn(tab === 'beranda')} onClick={() => setTab('beranda')}>Beranda</button>
                 <button className={navBtn(tab === 'mapel')} onClick={() => setTab('mapel')}>Mapel Saya</button>
                 <button className={navBtn(tab === 'siswa')} onClick={() => setTab('siswa')}>Siswa</button>
+                <button className={navBtn(tab === 'adaptif')} onClick={() => setTab('adaptif')}>Progress Adaptif</button>
             </div>
 
             {tab === 'beranda' && (
@@ -246,6 +260,59 @@ export default function TeacherDashboardPage() {
                                             </p>
                                         )}
                                     </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </>
+            )}
+
+            {tab === 'adaptif' && (
+                <>
+                    <h3 className="font-[var(--font-fredoka)] text-xl text-[#0f172a] mb-3">
+                        Progress Adaptif Siswa
+                        {adaptifData?.kelas?.length > 0 && <span className="text-sm text-gray-500 ml-2">({adaptifData.kelas.join(', ')})</span>}
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-4">
+                        Level aktual tiap siswa per mapel — AI turunkan level kalau belum kuasai dasar.
+                    </p>
+                    {!adaptifData ? (
+                        <p className="text-center text-gray-500 py-8">Memuat...</p>
+                    ) : adaptifData.siswa.length === 0 ? (
+                        <p className="text-center text-gray-500 py-8">Belum ada siswa.</p>
+                    ) : (
+                        <div className="flex flex-col gap-3 md:grid md:grid-cols-2 lg:grid-cols-3">
+                            {adaptifData.siswa.map((s: any) => (
+                                <div key={s.id} className="bg-white p-4 rounded-2xl border-2 border-[#e2e8f0] shadow-[4px_4px_0px_#e2e8f0]">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className="w-10 h-10 bg-gray-100 rounded-full overflow-hidden flex-shrink-0">
+                                            <img src={s.avatar || '/images/avatar-student.png'} alt={s.nama} className="w-full h-full object-cover" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="font-bold text-[#0f172a] truncate">{s.nama}</p>
+                                            <p className="text-xs text-gray-500">Kelas {s.kelas || '-'}</p>
+                                        </div>
+                                    </div>
+                                    {s.mapel.length === 0 ? (
+                                        <p className="text-xs text-gray-400">Belum ada progress adaptif.</p>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            {s.mapel.map((m: any) => (
+                                                <div key={m.subjectId} className="flex items-center justify-between bg-[#f8fafc] rounded-xl px-3 py-2">
+                                                    <div className="min-w-0">
+                                                        <p className="text-xs font-bold text-[#0f172a] truncate">{m.nama}</p>
+                                                        <p className="text-[11px] text-gray-500">{m.mastered} skill • ⭐{m.stars}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        {m.badges?.length > 0 && <span title={m.badges[0]}>🏅</span>}
+                                                        <span className="text-xs font-bold text-[#6c5ce7] bg-[#6c5ce7]/10 px-2.5 py-1 rounded-xl">
+                                                            {m.levelLabel}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>

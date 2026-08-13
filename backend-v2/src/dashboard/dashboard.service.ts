@@ -112,6 +112,61 @@ export class DashboardService {
         return { siswa: perSiswa, kelas: kelasAssign };
     }
 
+    // Progress adaptif siswa utk guru (level + skill per mapel)
+    async getTeacherAdaptiveProgress(userId: string) {
+        const guru = userId ? await this.prisma.user.findUnique({ where: { id: userId } }) : null;
+        const kelasAssign = guru?.kelas_assign || [];
+        const mapelIds = guru?.mata_pelajaran || [];
+
+        const siswaFilter: any = { role: 'siswa' };
+        if (kelasAssign.length > 0) siswaFilter.kelas = { in: kelasAssign };
+        const siswa = await this.prisma.user.findMany({
+            where: siswaFilter,
+            orderBy: { username: 'asc' },
+        });
+
+        // Mapel assign guru (kosong = semua)
+        const subjects = mapelIds.length > 0
+            ? await this.prisma.subject.findMany({ where: { id: { in: mapelIds } } })
+            : await this.prisma.subject.findMany();
+
+        // Progress semua siswa untuk mapel yang relevan
+        const subjectIds = subjects.map(s => s.id);
+        const progresses = await this.prisma.studentProgress.findMany({
+            where: { subjectId: { in: subjectIds } },
+        });
+
+        const levelLabel = (l: number) => (l === 0 ? 'TK' : `Kelas ${l}`);
+
+        const perSiswa = siswa.map(s => {
+            const pSiswa = progresses.filter(p => p.userId === s.id);
+            return {
+                id: s.id,
+                nama: s.username,
+                kelas: s.kelas,
+                avatar: s.avatar,
+                mapel: pSiswa.map(p => {
+                    const subject = subjects.find(x => x.id === p.subjectId);
+                    return {
+                        subjectId: p.subjectId,
+                        nama: subject?.nama || 'Mapel',
+                        level: p.level,
+                        levelLabel: levelLabel(p.level),
+                        stars: p.stars,
+                        mastered: (p.mastered || []).length,
+                        badges: p.badges || [],
+                    };
+                }),
+            };
+        });
+
+        return {
+            siswa: perSiswa,
+            mapel: subjects.map(s => ({ id: s.id, nama: s.nama, kelas: s.kelas })),
+            kelas: kelasAssign,
+        };
+    }
+
     // Detail mapel yang di-assign ke guru (validasi akses)
     async getTeacherSubject(userId: string, subjectId: string) {
         const guru = await this.prisma.user.findUnique({ where: { id: userId } });
