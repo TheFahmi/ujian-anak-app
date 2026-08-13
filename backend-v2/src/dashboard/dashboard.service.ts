@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -7,7 +8,7 @@ export class DashboardService {
 
     async getTeacherDashboard(userId: string) {
         // Guru hanya melihat data sesuai assign: mata_pelajaran + kelas_assign.
-        const guru = await this.prisma.user.findUnique({ where: { id: userId } });
+        const guru = userId ? await this.prisma.user.findUnique({ where: { id: userId } }) : null;
         const mapelIds = guru?.mata_pelajaran || [];
         const kelasAssign = guru?.kelas_assign || [];
 
@@ -67,7 +68,7 @@ export class DashboardService {
 
     // Daftar siswa yang terlihat guru (filter kelas_assign)
     async getTeacherStudents(userId: string) {
-        const guru = await this.prisma.user.findUnique({ where: { id: userId } });
+        const guru = userId ? await this.prisma.user.findUnique({ where: { id: userId } }) : null;
         const kelasAssign = guru?.kelas_assign || [];
 
         const siswaFilter: any = { role: 'siswa' };
@@ -117,11 +118,11 @@ export class DashboardService {
         const mapelIds = guru?.mata_pelajaran || [];
 
         if (mapelIds.length > 0 && !mapelIds.includes(subjectId)) {
-            throw new Error('Akses ditolak: mapel ini tidak di-assign ke kamu');
+            throw new ForbiddenException('Akses ditolak: mapel ini tidak di-assign ke kamu');
         }
 
         const subject = await this.prisma.subject.findUnique({ where: { id: subjectId } });
-        if (!subject) throw new Error('Mapel tidak ditemukan');
+        if (!subject) throw new NotFoundException('Mapel tidak ditemukan');
 
         // Hitung jumlah siswa di kelas mapel (kalau guru punya kelas assign)
         const kelasAssign = guru?.kelas_assign || [];

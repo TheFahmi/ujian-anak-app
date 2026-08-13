@@ -62,11 +62,16 @@ function TeacherExamsContent() {
         }
     }, [user, subjectId]);
 
-    if (loading) return <div className="pt-20 px-6"><TopAppBar title="Kelola Ujian" showBack /><p className="text-center py-10 text-gray-500">Loading...</p></div>;
+    if (loading) return <div className="pt-6"><TopAppBar title="Kelola Ujian" showBack /><p className="text-center py-10 text-gray-500">Loading...</p></div>;
 
     return (
-        <div className="pt-20 px-6 pb-28">
-            <TopAppBar title={subject?.nama || 'Kelola Ujian'} showBack />
+        <div className="pt-6 pb-8">
+            <div className="mb-6 md:hidden">
+                <TopAppBar title={subject?.nama || 'Kelola Ujian'} showBack />
+            </div>
+            <h1 className="mb-6 hidden text-2xl font-bold text-[#171717] md:block">
+                {subject?.nama || 'Kelola Ujian'}
+            </h1>
 
             {error && (
                 <div className="bg-red-50 border-2 border-red-200 text-red-700 p-4 rounded-xl mb-4 text-sm">
