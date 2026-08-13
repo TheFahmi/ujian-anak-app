@@ -144,6 +144,7 @@ export class DashboardService {
 
         return {
             mapel: { id: subject.id, nama: subject.nama, kelas: subject.kelas, durasi: subject.durasi },
+            soal: Array.isArray(subject.soal) ? subject.soal : [],
             jumlahSoal: Array.isArray(subject.soal) ? subject.soal.length : 0,
             jumlahSiswa,
             jumlahUjian: hasil.length,
@@ -188,6 +189,84 @@ export class DashboardService {
                 totalExams,
             },
             recentResults: results.map((r) => ({ ...r, _id: r.id })),
+        };
+    }
+
+    // Laporan detail per anak: riwayat lengkap + rata-rata per mapel
+    async getParentReport(parentId: string, childId: string) {
+        const parent = await this.prisma.user.findUnique({ where: { id: parentId } });
+        if (!parent || !parent.children || !parent.children.includes(childId)) {
+            throw new Error('Akses ditolak: anak tidak terdaftar');
+        }
+
+        const [child, results] = await Promise.all([
+            this.prisma.user.findUnique({ where: { id: childId } }),
+            this.prisma.result.findMany({
+                where: { userId: childId },
+                orderBy: { date: 'desc' },
+                take: 200,
+            }),
+        ]);
+
+        if (!child) throw new Error('Anak tidak ditemukan');
+
+        // Agregasi per mapel
+        const perMapelMap = new Map<string, { count: number; total: number; results: any[] }>();
+        results.forEach(r => {
+            const key = r.subjectName || 'Ujian';
+            const entry = perMapelMap.get(key) || { count: 0, total: 0, results: [] };
+            entry.count++;
+            entry.total += r.score;
+            entry.results.push({
+                id: r.id,
+                score: r.score,
+                date: r.date,
+                correctCount: r.correctCount,
+                totalQuestions: r.totalQuestions,
+            });
+            perMapelMap.set(key, entry);
+        });
+
+        const perMapel = Array.from(perMapelMap.entries()).map(([nama, e]) => ({
+            nama,
+            jumlahUjian: e.count,
+            rataRata: Math.round(e.total / e.count),
+            hasil: e.results,
+        }));
+
+        const totalUjian = results.length;
+        const rataKeseluruhan = totalUjian > 0
+            ? Math.round(results.reduce((a, r) => a + r.score, 0) / totalUjian)
+            : 0;
+
+        // Tren: skor per tanggal (untuk grafik)
+        const tren = results.slice(0, 20).reverse().map(r => ({
+            tanggal: r.date,
+            skor: r.score,
+            mapel: r.subjectName || 'Ujian',
+        }));
+
+        return {
+            anak: {
+                id: child.id,
+                nama: child.username,
+                kelas: child.kelas,
+                avatar: child.avatar,
+            },
+            stats: {
+                totalUjian,
+                rataKeseluruhan,
+            },
+            perMapel,
+            tren,
+            riwayat: results.map(r => ({
+                id: r.id,
+                subjectName: r.subjectName,
+                score: r.score,
+                date: r.date,
+                correctCount: r.correctCount,
+                totalQuestions: r.totalQuestions,
+            })),
         };
     }
 }

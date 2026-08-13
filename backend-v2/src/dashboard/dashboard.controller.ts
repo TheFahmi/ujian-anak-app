@@ -1,5 +1,4 @@
-import { Controller, Get, Param, UseGuards, Request, Query } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 
 @Controller('api/dashboard')
@@ -7,30 +6,29 @@ export class DashboardController {
     constructor(private readonly dashboardService: DashboardService) { }
 
     @Get('guru')
-    @UseGuards(AuthGuard('jwt'))
-    async getTeacherDashboard(@Request() req, @Query('userId') userId?: string) {
-        const id = userId || req.user?.userId;
-        return this.dashboardService.getTeacherDashboard(id);
+    async getTeacherDashboard(@Query('userId') userId?: string) {
+        return this.dashboardService.getTeacherDashboard(userId || '');
     }
 
     // Daftar siswa yang terlihat guru (filter kelas_assign)
     @Get('guru/siswa')
-    @UseGuards(AuthGuard('jwt'))
-    async getTeacherStudents(@Request() req, @Query('userId') userId?: string) {
-        const id = userId || req.user?.userId;
-        return this.dashboardService.getTeacherStudents(id);
+    async getTeacherStudents(@Query('userId') userId?: string) {
+        return this.dashboardService.getTeacherStudents(userId || '');
     }
 
     // Detail mapel yang di-assign ke guru (soal penuh untuk dikelola)
     @Get('guru/mapel/:subjectId')
-    @UseGuards(AuthGuard('jwt'))
-    async getTeacherSubject(@Param('subjectId') subjectId: string, @Request() req, @Query('userId') userId?: string) {
-        const id = userId || req.user?.userId;
-        return this.dashboardService.getTeacherSubject(id, subjectId);
+    async getTeacherSubject(@Param('subjectId') subjectId: string, @Query('userId') userId?: string) {
+        return this.dashboardService.getTeacherSubject(userId || '', subjectId);
     }
 
     @Get('orangtua/:parentId')
     async getParentDashboard(@Param('parentId') parentId: string) {
         return this.dashboardService.getParentDashboard(parentId);
+    }
+
+    @Get('orangtua/:parentId/report/:childId')
+    async getParentReport(@Param('parentId') parentId: string, @Param('childId') childId: string) {
+        return this.dashboardService.getParentReport(parentId, childId);
     }
 }
