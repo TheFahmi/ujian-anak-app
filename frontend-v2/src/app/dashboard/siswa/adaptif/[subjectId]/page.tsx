@@ -44,13 +44,23 @@ export default function AdaptiveAssessmentPage() {
         if (!user) return;
         setLoading(true);
         try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000);
             const res = await fetch('/api/adaptive/assessment/start', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id, subjectId }),
+                signal: controller.signal,
             });
+            clearTimeout(timeoutId);
             const data = await res.json();
-            setQuestions(data.questions || []);
+            if (!res.ok || !data.questions || data.questions.length === 0) {
+                console.error('Start assessment failed:', data);
+                alert(data.message || 'Gagal menyiapkan soal. Coba lagi.');
+                setLoading(false);
+                return;
+            }
+            setQuestions(data.questions);
             setSkill(data.skill);
             setLevel(data.level);
             setLevelLabel(data.levelLabel);
