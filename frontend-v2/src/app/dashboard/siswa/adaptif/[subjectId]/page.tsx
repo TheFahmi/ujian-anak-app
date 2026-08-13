@@ -124,7 +124,7 @@ export default function AdaptiveAssessmentPage() {
     return (
         <div className="min-h-screen bg-[#fdfbf7] pb-32">
             <TopAppBar title="Belajar Adaptif" showBack />
-            <div className="px-6 pt-6 max-w-lg mx-auto">
+            <div className="px-6 pt-20 max-w-lg mx-auto">
                 {/* INTRO */}
                 {phase === 'intro' && (
                     <>
@@ -177,16 +177,22 @@ export default function AdaptiveAssessmentPage() {
                 {/* QUIZ */}
                 {phase === 'quiz' && (
                     <>
-                        <div className="bg-white rounded-3xl border-2 border-[#e2e8f0] shadow-[4px_4px_0px_#e2e8f0] p-5 mb-5">
-                            <div className="flex items-center justify-between mb-1">
-                                <span className="text-xs font-bold text-[#6c5ce7] bg-[#6c5ce7]/10 px-3 py-1 rounded-xl">
-                                    Level {levelLabel} • {skill?.nama}
+                        {/* Header status quiz */}
+                        <div className="mb-5">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs font-bold text-[#6c5ce7] bg-[#6c5ce7]/10 px-3 py-1.5 rounded-xl">
+                                    {levelLabel} • {skill?.nama}
                                 </span>
-                                <span className="text-xs text-gray-400">
+                                <span className="text-xs font-semibold text-[#0f172a]">
                                     {Object.keys(answers).length}/{questions.length} terjawab
                                 </span>
                             </div>
-                            <p className="text-xs text-gray-500 mb-1">{subjectId && 'Assessment'}</p>
+                            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-[#6c5ce7] rounded-full transition-all duration-300"
+                                    style={{ width: `${questions.length > 0 ? (Object.keys(answers).length / questions.length) * 100 : 0}%` }}
+                                />
+                            </div>
                         </div>
 
                         {questions.map((q, qi) => (
