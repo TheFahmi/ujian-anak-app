@@ -1,0 +1,82 @@
+/* WYSIWYG editor + RichText renderer */
+
+.wysiwyg-content {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #2d3436;
+}
+.wysiwyg-content p { margin: 0.5em 0; }
+.wysiwyg-content h2 { font-size: 1.2em; font-weight: 700; margin: 0.6em 0 0.3em; }
+.wysiwyg-content ul { list-style: disc; padding-left: 1.4em; margin: 0.5em 0; }
+.wysiwyg-content ol { list-style: decimal; padding-left: 1.4em; margin: 0.5em 0; }
+.wysiwyg-content blockquote {
+    border-left: 3px solid #6c5ce7;
+    padding-left: 0.8em;
+    margin: 0.5em 0;
+    color: #636e72;
+}
+.wysiwyg-content code {
+    background: #f1f2f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+.wysiwyg-content pre {
+    background: #2d3436;
+    color: #dfe6e9;
+    padding: 10px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 0.5em 0;
+}
+.wysiwyg-content pre code { background: none; color: inherit; padding: 0; }
+.wysiwyg-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 0.5em 0;
+}
+.wysiwyg-content .ProseMirror-selectednode { outline: 2px solid #6c5ce7; }
+.wysiwyg-content p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    color: #b2bec3;
+    float: left;
+    height: 0;
+    pointer-events: none;
+}
+
+/* RichText renderer (hasil WYSIWYG) */
+.richtext { font-size: 15px; line-height: 1.7; color: #2d3436; word-break: break-word; }
+.richtext p { margin: 0.4em 0; }
+.richtext h2 { font-size: 1.15em; font-weight: 700; margin: 0.5em 0 0.25em; }
+.richtext h3 { font-size: 1.05em; font-weight: 700; margin: 0.5em 0 0.25em; }
+.richtext ul { list-style: disc; padding-left: 1.4em; margin: 0.4em 0; }
+.richtext ol { list-style: decimal; padding-left: 1.4em; margin: 0.4em 0; }
+.richtext blockquote {
+    border-left: 3px solid #6c5ce7;
+    padding-left: 0.8em;
+    margin: 0.4em 0;
+    color: #636e72;
+}
+.richtext code {
+    background: #f1f2f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+.richtext pre {
+    background: #2d3436;
+    color: #dfe6e9;
+    padding: 10px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 0.4em 0;
+}
+.richtext pre code { background: none; color: inherit; padding: 0; }
+.richtext img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 0.4em 0;
+}
+.richtext .katex-display { margin: 0.6em 0; overflow-x: auto; overflow-y: hidden; }

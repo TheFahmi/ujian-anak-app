@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/context/ToastContext';
 import Image from 'next/image';
-import MathText from '@/components/MathText';
+import { SmartText } from '@/components/RichText';
 
 interface AIFriend {
     id: string;
@@ -268,7 +268,7 @@ function ReviewPageContent() {
 
                 {/* Question Card */}
                 <div className="bg-white rounded-[2rem] border-2 border-[#e2e8f0] p-6 shadow-[4px_4px_0px_#e2e8f0] mb-6">
-                    <p className="text-[#0f172a] text-lg font-bold leading-relaxed"><MathText text={currentQuestion.pertanyaan || ''} diagramSvg={currentQuestion.diagram_svg} diagramAlt={currentQuestion.pertanyaan?.slice(0, 60) || 'diagram'} /></p>
+                    <p className="text-[#0f172a] text-lg font-bold leading-relaxed"><SmartText text={currentQuestion.pertanyaan || ''} diagramSvg={currentQuestion.diagram_svg} diagramAlt={currentQuestion.pertanyaan?.slice(0, 60) || 'diagram'} /></p>
                 </div>
 
                 {/* Multiple Choice Options */}
@@ -292,7 +292,7 @@ function ReviewPageContent() {
                                     }`}
                                 >
                                     <div className="flex-grow flex items-center gap-3">
-                                        <p className="text-[#0f172a] text-base font-bold leading-normal flex-1">{optionText ? <MathText text={optionText} /> : ''}</p>
+                                        <p className="text-[#0f172a] text-base font-bold leading-normal flex-1">{optionText ? <SmartText text={optionText} /> : ''}</p>
                                         {isUserIncorrect && <span className="material-symbols-outlined text-red-500 text-2xl">close</span>}
                                         {isCorrectAnswer && <span className="material-symbols-outlined text-green-500 text-2xl">check</span>}
                                     </div>
@@ -356,7 +356,7 @@ function ReviewPageContent() {
                                     <div className="flex-1">
                                         <p className="text-green-800 text-sm font-bold mb-2 uppercase tracking-wide">Jawaban yang Benar:</p>
                                         {getCorrectAnswerText() && (
-                                            <p className="text-[#0f172a] text-base font-medium leading-relaxed mb-4"><MathText text={getCorrectAnswerText()} /></p>
+                                            <p className="text-[#0f172a] text-base font-medium leading-relaxed mb-4"><SmartText text={getCorrectAnswerText()} /></p>
                                         )}
                                         {!questionResult.correct && getAIExplanation() && currentQuestion.tipe !== 'isian' && (
                                             <div className="mt-3 pt-3 border-t-2 border-green-200/50">
@@ -364,7 +364,7 @@ function ReviewPageContent() {
                                                     <span className="material-symbols-outlined text-lg">lightbulb</span>
                                                     Kenapa jawabanmu salah?
                                                 </p>
-                                                <p className="text-[#0f172a] text-sm leading-relaxed whitespace-pre-wrap"><MathText text={getAIExplanation()} diagramSvg={currentQuestion.diagram_svg} diagramAlt="diagram penjelasan" /></p>
+                                                <p className="text-[#0f172a] text-sm leading-relaxed whitespace-pre-wrap"><SmartText text={getAIExplanation()} diagramSvg={currentQuestion.diagram_svg} diagramAlt="diagram penjelasan" /></p>
                                             </div>
                                         )}
                                         {questionResult.aiFeedback && (

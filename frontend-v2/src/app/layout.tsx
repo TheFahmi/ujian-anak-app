@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Lexend, Fredoka } from "next/font/google";
 import "./globals.css";
+import "@/components/wysiwyg.css";
 import { ToastProvider } from "@/context/ToastContext";
 import { ConfirmProvider } from "@/context/ConfirmContext";
 import { AuthProvider } from "@/context/AuthContext";
