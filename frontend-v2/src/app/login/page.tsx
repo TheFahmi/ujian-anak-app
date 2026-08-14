@@ -66,7 +66,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen w-full bg-[#fdfbf7] font-[var(--font-lexend)] max-w-md md:max-w-md lg:max-w-md mx-auto overflow-x-hidden relative">
+        <div className="min-h-screen w-full bg-[#fafafa] font-[var(--font-lexend)] overflow-x-hidden relative flex items-center justify-center px-4 py-10">
             {/* Navbar Simple */}
             <nav className="p-6 flex justify-between items-center relative z-10">
                 <Link href="/" className="flex items-center gap-2 no-underline">
@@ -77,7 +77,8 @@ export default function LoginPage() {
                 </Link>
             </nav>
 
-            <main className="px-6 pt-4 pb-12 flex flex-col items-center justify-center min-h-[80vh] relative z-10">
+            <main className="w-full max-w-md flex flex-col items-center justify-center min-h-[70vh] relative z-10">
+                <div className="w-full bg-white border-2 border-[#e5e5e5] rounded-3xl p-8 shadow-sm">
                 <div className="text-center mb-8">
                     <div className="relative inline-block mb-4">
                         <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center border-4 border-[#f4c025] shadow-[4px_4px_0px_#0f172a] relative z-10">
@@ -123,7 +124,7 @@ export default function LoginPage() {
                     </div>
 
                     <div className="flex justify-end">
-                        <a href="#" className="text-sm font-bold text-[#f4c025] hover:text-[#e6b020] no-underline">Lupa password?</a>
+                        <Link href="/lupa" className="text-sm font-bold text-[#f4c025] hover:text-[#e6b020] no-underline">Lupa password?</Link>
                     </div>
 
                     <button
@@ -139,8 +140,9 @@ export default function LoginPage() {
 
                 <div className="mt-8 text-center">
                     <p className="text-[#64748b] text-sm">
-                        Belum punya akun? <a href="#" className="font-bold text-[#0f172a] hover:text-[#f4c025] no-underline">Daftar dulu yuk!</a>
+                        Belum punya akun? <Link href="/register" className="font-bold text-[#0f172a] hover:text-[#f4c025] no-underline">Daftar dulu yuk!</Link>
                     </p>
+                </div>
                 </div>
             </main>
         </div>

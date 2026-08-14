@@ -138,10 +138,12 @@ export default function StudentDashboardPage() {
 
     return (
         <>
-            <TopAppBar
-                title={`Halo, ${user?.username || 'Teman'}!`}
-                avatarUrl={user?.avatar || "/images/avatar-student.png"}
-            />
+            <div className="md:hidden">
+                <TopAppBar
+                    title={`Halo, ${user?.username || 'Teman'}!`}
+                    avatarUrl={user?.avatar || "/images/avatar-student.png"}
+                />
+            </div>
 
             {/* Section: Belajar Adaptif */}
             <div className="px-6 mt-2 mb-6">

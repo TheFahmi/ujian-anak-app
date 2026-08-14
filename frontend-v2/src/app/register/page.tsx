@@ -97,7 +97,7 @@ export default function RegisterPage() {
     // Layar sukses guru pending
     if (pending) {
         return (
-            <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center p-6">
+            <div className="min-h-screen bg-[#fafafa] flex items-center justify-center p-6">
                 <div className="w-full max-w-md text-center bg-white rounded-3xl border-2 border-[#e2e8f0] shadow-[6px_6px_0px_#e2e8f0] p-8">
                     <div className="text-6xl mb-4">
                         <span className="material-symbols-outlined text-6xl text-[#f59e0b]">hourglass_top</span>
@@ -118,7 +118,7 @@ export default function RegisterPage() {
     // Layar sukses siswa
     if (sukses) {
         return (
-            <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center p-6">
+            <div className="min-h-screen bg-[#fafafa] flex items-center justify-center p-6">
                 <div className="w-full max-w-md text-center bg-white rounded-3xl border-2 border-[#e2e8f0] shadow-[6px_6px_0px_#e2e8f0] p-8">
                     <div className="text-6xl mb-4">
                         <span className="material-symbols-outlined text-6xl text-[#22c55e]">check_circle</span>
@@ -131,7 +131,7 @@ export default function RegisterPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center p-4 py-10">
+        <div className="min-h-screen bg-[#fafafa] flex items-center justify-center p-4 py-10">
             <div className="w-full max-w-md">
                 <div className="text-center mb-6">
                     <div className="text-5xl mb-2">
