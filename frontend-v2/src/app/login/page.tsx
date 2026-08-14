@@ -66,9 +66,9 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen w-full bg-[#fafafa] font-[var(--font-lexend)] overflow-x-hidden relative flex items-center justify-center px-4 py-10">
+        <div className="min-h-screen w-full bg-[#fafafa] font-[var(--font-lexend)] overflow-x-hidden relative flex flex-col">
             {/* Navbar Simple */}
-            <nav className="p-6 flex justify-between items-center relative z-10">
+            <nav className="px-6 py-5 flex justify-between items-center relative z-10 w-full">
                 <Link href="/" className="flex items-center gap-2 no-underline">
                     <div className="w-10 h-10 bg-[#f4c025] rounded-xl rotate-3 flex items-center justify-center shadow-[2px_2px_0px_#0f172a]">
                         <GraduationCap className="w-6 h-6 text-[#0f172a]" />
@@ -77,7 +77,7 @@ export default function LoginPage() {
                 </Link>
             </nav>
 
-            <main className="w-full max-w-md flex flex-col items-center justify-center min-h-[70vh] relative z-10">
+            <main className="w-full max-w-md mx-auto flex flex-col items-center justify-center flex-1 px-4 relative z-10">
                 <div className="w-full bg-white border-2 border-[#e5e5e5] rounded-3xl p-8 shadow-sm">
                 <div className="text-center mb-8">
                     <div className="relative inline-block mb-4">

@@ -147,7 +147,7 @@ export default function AdaptiveAssessmentPage() {
                                 Assessment Adaptif
                             </h1>
                             <p className="text-sm text-gray-500">
-                                AI akan tes kemampuanmu dengan 3 soal. Jawab dengan jujur ya!
+                                AI akan tes kemampuanmu dengan 10 soal. Jawab dengan jujur ya!
                             </p>
                         </div>
                         {/* Tutor AI banner */}
@@ -233,7 +233,7 @@ export default function AdaptiveAssessmentPage() {
                             </button>
                         </div>
                         <p className="text-center text-xs text-gray-400 mt-4">
-                            Jawab benar 2 dari 3 → naik level. Salah 2 → turun ke dasar. ✨
+                            Skor 70% ke atas → naik level. Skor di bawah 50% → turun ke dasar.
                         </p>
                     </>
                 )}

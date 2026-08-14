@@ -141,7 +141,7 @@ JAWAB HANYA JSON array, format tiap soal:
         const skill = await this.getCurrentSkill(subjectId, progress.level);
         const subject = await this.prisma.subject.findUnique({ where: { id: subjectId } });
 
-        const questions = await this.aiGenerateQuestions(subject?.nama || 'Matematika', skill, 3);
+        const questions = await this.aiGenerateQuestions(subject?.nama || 'Matematika', skill, 10);
         return {
             level: progress.level,
             levelLabel: progress.level === 0 ? 'TK' : `Kelas ${progress.level}`,
@@ -180,8 +180,8 @@ JAWAB HANYA JSON array, format tiap soal:
         let naik = false, turun = false;
         let badgeBaru: string | null = null;
         let sertifikatBaru: string | null = null;
-        // ≥2 benar dari 3 → kuasai skill & naik
-        if (correct >= 2 && total >= 3) {
+        // Skor ≥70% → kuasai skill & naik; skor <50% → turun level
+        if (skor >= 70 && total >= 5) {
             // Tandai skill level saat ini dikuasai
             const skillsLevel = await this.prisma.skillNode.findMany({
                 where: { subjectId, level: progress.level },
@@ -230,8 +230,8 @@ JAWAB HANYA JSON array, format tiap soal:
                     history: [...(Array.isArray(progress.history) ? progress.history : []), { date: new Date().toISOString(), level: progress.level, skor }],
                 },
             });
-        } else if (correct < 2) {
-            // Turun 1 level (min 0 = TK)
+        } else if (skor < 50 && total >= 5) {
+            // Skor <50% → turun 1 level (min 0 = TK)
             const newLevel = Math.max(0, progress.level - 1);
             turun = newLevel !== progress.level;
 
