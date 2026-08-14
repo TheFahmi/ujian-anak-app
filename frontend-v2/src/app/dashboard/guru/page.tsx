@@ -92,10 +92,12 @@ export default function TeacherDashboardPage() {
     return (
         <div className="pt-6 pb-8">
             <div className="mb-6 md:hidden">
-                <TopAppBar
+                <div className="md:hidden">
+                    <TopAppBar
                     title={`Halo, Guru ${user?.username || ''}!`}
                     avatarUrl={user?.avatar || "/images/avatar-teacher.png"}
                 />
+                </div>
             </div>
 
             <h1 className="mb-6 hidden text-2xl font-bold text-[#171717] md:block">
@@ -219,7 +221,7 @@ export default function TeacherDashboardPage() {
                                     </div>
                                     <div className="flex-1">
                                         <p className="font-bold text-[#0f172a]">{m.nama}</p>
-                                        <p className="text-xs text-gray-500">Kelas {m.kelas} • {m.jumlahSoal} soal</p>
+                                        <p className="text-xs text-gray-500">{m.kelas} • {m.jumlahSoal} soal</p>
                                     </div>
                                     <span className="text-xs font-bold text-[#6c5ce7] bg-[#6c5ce7]/10 px-3 py-1.5 rounded-xl">Kelola Soal</span>
                                 </button>
@@ -251,7 +253,7 @@ export default function TeacherDashboardPage() {
                                     <div className="flex-1 min-w-0">
                                         <p className="font-bold text-[#0f172a] truncate">{s.nama}</p>
                                         <p className="text-xs text-gray-500">
-                                            Kelas {s.kelas || '-'} • {s.jumlahUjian} ujian
+                                            {s.kelas || '-'} • {s.jumlahUjian} ujian
                                             {s.rataNilai !== null && ` • Rata-rata ${s.rataNilai}`}
                                         </p>
                                         {s.terakhir && (
@@ -290,7 +292,7 @@ export default function TeacherDashboardPage() {
                                         </div>
                                         <div className="min-w-0">
                                             <p className="font-bold text-[#0f172a] truncate">{s.nama}</p>
-                                            <p className="text-xs text-gray-500">Kelas {s.kelas || '-'}</p>
+                                            <p className="text-xs text-gray-500">{s.kelas || '-'}</p>
                                         </div>
                                     </div>
                                     {s.mapel.length === 0 ? (

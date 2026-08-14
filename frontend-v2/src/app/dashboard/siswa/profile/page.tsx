@@ -23,6 +23,7 @@ export default function ProfilPage() {
     const router = useRouter();
     const { user, logout, isLoading } = useAuth();
     const [badgeCount, setBadgeCount] = useState(0);
+    const [avgScore, setAvgScore] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
     const [selectedFriend, setSelectedFriend] = useState<AIFriend | null>(null);
 
@@ -43,6 +44,20 @@ export default function ProfilPage() {
                 }
             })
             .catch(err => console.error("Failed to fetch rewards", err))
+
+        // Ambil rata-rata nilai dari hasil ujian
+        fetch(`/api/results/${user.id}?userId=${user.id}`)
+            .then(res => res.json())
+            .then((results: any[]) => {
+                if (Array.isArray(results) && results.length > 0) {
+                    const valid = results.filter((r: any) => (r.totalQuestions || 0) > 0);
+                    if (valid.length > 0) {
+                        const avg = Math.round(valid.reduce((s: number, r: any) => s + (r.score || 0), 0) / valid.length);
+                        setAvgScore(avg);
+                    }
+                }
+            })
+            .catch(err => console.error("Failed to fetch stats", err))
             .finally(() => setLoading(false));
     }, [user, isLoading, router]);
 
@@ -95,7 +110,7 @@ export default function ProfilPage() {
                         <div className="flex flex-col items-center justify-center gap-1">
                             <p className="text-[#0f172a] text-2xl font-[var(--font-fredoka)] font-bold leading-tight tracking-tight text-center m-0">{user.username || 'Budi Sanjaya'}</p>
                             <div className="px-4 py-1 bg-[#f4c025] border-2 border-[#0f172a] rounded-full shadow-[2px_2px_0px_#0f172a]">
-                                <p className="text-[#0f172a] text-sm font-bold leading-normal text-center m-0">Kelas {user.kelas || '4 SD'}</p>
+                                <p className="text-[#0f172a] text-sm font-bold leading-normal text-center m-0">{user.kelas || 'Kelas 4 SD'}</p>
                             </div>
                         </div>
                     </div>
@@ -129,7 +144,7 @@ export default function ProfilPage() {
                         </div>
                         <div className="flex flex-col gap-1">
                             <p className="text-[#64748b] text-sm font-medium leading-normal m-0">Rata-rata nilaimu saat ini:</p>
-                            <p className="text-3xl font-[var(--font-fredoka)] font-bold leading-normal m-0 text-[#2b8cee]">85%</p>
+                            <p className="text-3xl font-[var(--font-fredoka)] font-bold leading-normal m-0 text-[#2b8cee]">{avgScore !== null ? `${avgScore}%` : '—'}</p>
                         </div>
                         <button
                             className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#2b8cee] border-2 border-[#1a6bb5] shadow-[2px_2px_0px_#1a6bb5] text-white text-sm font-bold leading-normal active:translate-y-0.5 active:shadow-none transition-all"

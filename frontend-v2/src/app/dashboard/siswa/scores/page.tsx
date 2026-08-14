@@ -12,23 +12,57 @@ export default function ScoreReportPage() {
 
     useEffect(() => {
         if (!user) return;
-        // Mock data for now, replace with actual API call
-        // const fetchStats = async () => { ... }
 
-        setTimeout(() => {
-            setStats({
-                totalExams: 12,
-                averageScore: 85,
-                highestScore: 100,
-                subjects: [
-                    { name: 'Matematika', score: 90, color: 'bg-blue-500' },
-                    { name: 'Bahasa Indonesia', score: 85, color: 'bg-green-500' },
-                    { name: 'IPA', score: 78, color: 'bg-purple-500' },
-                    { name: 'Sejarah', score: 95, color: 'bg-orange-500' },
-                ]
-            });
-            setLoading(false);
-        }, 1000);
+        const fetchStats = async () => {
+            try {
+                const res = await fetch(`/api/results/${user.id}?userId=${user.id}`);
+                if (!res.ok) throw new Error('Failed');
+                const results = await res.json();
+                if (!Array.isArray(results) || results.length === 0) {
+                    setStats({
+                        totalExams: 0,
+                        averageScore: 0,
+                        highestScore: 0,
+                        subjects: [],
+                    });
+                    setLoading(false);
+                    return;
+                }
+                // Ambil hanya ujian dengan totalQuestions > 0 (skor valid)
+                const valid = results.filter((r: any) => (r.totalQuestions || 0) > 0);
+                const totalExams = valid.length;
+                const avg = valid.length > 0
+                    ? Math.round(valid.reduce((s: number, r: any) => s + (r.score || 0), 0) / valid.length)
+                    : 0;
+                const highest = valid.length > 0
+                    ? Math.max(...valid.map((r: any) => r.score || 0))
+                    : 0;
+
+                // Agregat per mapel: rata-rata score per subjectName
+                const bySubject: Record<string, { total: number; count: number }> = {};
+                valid.forEach((r: any) => {
+                    const name = r.subjectName || 'Tanpa Mapel';
+                    if (!bySubject[name]) bySubject[name] = { total: 0, count: 0 };
+                    bySubject[name].total += (r.score || 0);
+                    bySubject[name].count += 1;
+                });
+                const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500', 'bg-teal-500'];
+                const subjects = Object.entries(bySubject).map(([name, v], i) => ({
+                    name,
+                    score: Math.round(v.total / v.count),
+                    color: colors[i % colors.length],
+                }));
+
+                setStats({ totalExams, averageScore: avg, highestScore: highest, subjects });
+            } catch (err) {
+                console.error('Failed to fetch stats', err);
+                setStats({ totalExams: 0, averageScore: 0, highestScore: 0, subjects: [] });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchStats();
     }, [user]);
 
     if (loading) return <div className="p-8 text-center">Loading Report...</div>;
