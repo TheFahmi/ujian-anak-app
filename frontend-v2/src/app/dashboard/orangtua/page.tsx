@@ -49,6 +49,20 @@ export default function ParentDashboardPage() {
         }
     };
 
+    const fetchDashboardByChild = async (childId: string) => {
+        if (!user) return;
+        try {
+            const res = await fetch(`/api/dashboard/orangtua/${user.id}?childId=${childId}`);
+            const data = await res.json();
+            if (data.hasChildren) {
+                setStats(data.stats);
+                setRecentResults(data.recentResults);
+            }
+        } catch (error) {
+            console.error('Failed to fetch child dashboard', error);
+        }
+    };
+
     useEffect(() => {
         if (!user) return;
 
@@ -85,11 +99,13 @@ export default function ParentDashboardPage() {
     if (loading) return <div className="p-8 text-center">Loading Dashboard...</div>;
 
     return (
-        <div className="pt-20 px-6">
-            <TopAppBar
-                title={`Halo, Orang Tua!`}
-                avatarUrl={user?.avatar || "/images/avatar-parent.png"}
-            />
+        <div className="pt-20 px-6 md:pt-8">
+            <div className="md:hidden">
+                <TopAppBar
+                    title={`Halo, Orang Tua!`}
+                    avatarUrl={user?.avatar || "/images/avatar-parent.png"}
+                />
+            </div>
 
             {/* Child Selector */}
             {children.length > 1 && (
@@ -98,7 +114,11 @@ export default function ParentDashboardPage() {
                     <select
                         className="w-full p-3 border-2 border-[#e2e8f0] rounded-xl text-base font-bold text-[#0f172a] bg-white focus:outline-none focus:border-[#2b8cee]"
                         value={selectedChildId}
-                        onChange={e => setSelectedChildId(e.target.value)}
+                        onChange={e => {
+                            const newId = e.target.value;
+                            setSelectedChildId(newId);
+                            fetchDashboardByChild(newId);
+                        }}
                     >
                         {children.map(c => (
                             <option key={c.id} value={c.id}>{c.username} — {c.kelas || '-'}</option>

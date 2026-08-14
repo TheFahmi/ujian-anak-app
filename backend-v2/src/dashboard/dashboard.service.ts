@@ -208,7 +208,7 @@ export class DashboardService {
         };
     }
 
-    async getParentDashboard(parentId: string) {
+    async getParentDashboard(parentId: string, childId?: string) {
         const parent = await this.prisma.user.findUnique({ where: { id: parentId } });
         if (!parent || !parent.children || parent.children.length === 0) {
             return {
@@ -219,15 +219,20 @@ export class DashboardService {
         }
 
         const childIds = parent.children;
+        // Kalau childId diberikan, pastikan anak itu terdaftar; kalau tidak, pakai anak pertama
+        let targetChildId = childId && parent.children.includes(childId) ? childId : parent.children[0];
+        if (childId && !parent.children.includes(childId)) {
+            targetChildId = parent.children[0];
+        }
 
         const [results, allResults, childrenDetails] = await Promise.all([
             this.prisma.result.findMany({
-                where: { userId: { in: childIds } },
+                where: { userId: targetChildId },
                 orderBy: { date: 'desc' },
                 take: 10,
             }),
             this.prisma.result.findMany({
-                where: { userId: { in: childIds } },
+                where: { userId: targetChildId },
                 select: { score: true },
             }),
             this.prisma.user.findMany({ where: { id: { in: childIds } } }),
@@ -240,6 +245,7 @@ export class DashboardService {
         return {
             hasChildren: true,
             children: childrenDetails,
+            selectedChildId: targetChildId,
             stats: {
                 averageScore,
                 totalExams,

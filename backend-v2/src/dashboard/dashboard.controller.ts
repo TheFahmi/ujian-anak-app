@@ -29,8 +29,8 @@ export class DashboardController {
     }
 
     @Get('orangtua/:parentId')
-    async getParentDashboard(@Param('parentId') parentId: string) {
-        return this.dashboardService.getParentDashboard(parentId);
+    async getParentDashboard(@Param('parentId') parentId: string, @Query('childId') childId?: string) {
+        return this.dashboardService.getParentDashboard(parentId, childId);
     }
 
     @Get('orangtua/:parentId/report/:childId')
