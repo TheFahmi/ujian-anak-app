@@ -21,6 +21,7 @@ export default function RegisterPage() {
     const [kelas, setKelas] = useState('Kelas 5');
     const [password, setPassword] = useState('');
     const [konfirmasi, setKonfirmasi] = useState('');
+    const [kodeAnak, setKodeAnak] = useState('');
     const [error, setError] = useState('');
     const [sukses, setSukses] = useState(false);
     const [pending, setPending] = useState(false);
@@ -57,6 +58,7 @@ export default function RegisterPage() {
                 role,
             };
             if (role === 'siswa') payload.kelas = kelas;
+            if (role === 'orangtua' && kodeAnak.trim()) payload.kode_anak = kodeAnak.trim();
 
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
@@ -195,6 +197,23 @@ export default function RegisterPage() {
                                 >
                                     {KELAS_PILIHAN.map(k => <option key={k} value={k}>{k}</option>)}
                                 </select>
+                            </div>
+                        )}
+
+                        {role === 'orangtua' && (
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-500 mb-1">Kode Anak (dari akun anak)</label>
+                                <input
+                                    type="text"
+                                    value={kodeAnak}
+                                    onChange={e => setKodeAnak(e.target.value.toUpperCase())}
+                                    placeholder="Contoh: A7K3M9"
+                                    maxLength={6}
+                                    className="w-full p-3 border-2 border-gray-200 rounded-xl text-center font-mono text-lg font-bold tracking-[0.3em] uppercase focus:outline-none focus:border-[#6c5ce7]"
+                                />
+                                <p className="text-[11px] text-gray-400 mt-1">
+                                    Minta kode dari halaman "Kode Orang Tua" di akun anakmu. (Opsional — bisa diisi nanti)
+                                </p>
                             </div>
                         )}
 

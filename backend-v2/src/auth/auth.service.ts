@@ -86,6 +86,19 @@ export class AuthService {
         // Create user (password will be hashed in UsersService)
         const role = userDto.role || 'siswa';
         const statusApproval = role === 'guru' ? 'pending' : 'active';
+        // Orang tua: kode anak opsional — validasi sebelum buat user
+        const kodeAnak = role === 'orangtua' && userDto.kode_anak
+            ? String(userDto.kode_anak).trim().toUpperCase()
+            : '';
+        if (role === 'orangtua' && kodeAnak) {
+            if (kodeAnak.length !== 6) {
+                throw new BadRequestException('Kode anak harus 6 karakter.');
+            }
+            const siswa = await this.prisma.user.findUnique({ where: { kode_ortua: kodeAnak } });
+            if (!siswa || siswa.role !== 'siswa') {
+                throw new BadRequestException('Kode anak tidak ditemukan. Periksa kembali kode dari anak.');
+            }
+        }
         const newUser: any = await this.usersService.create({
             ...userDto,
             id: userDto.id || randomUUID(),
@@ -94,6 +107,15 @@ export class AuthService {
             role,
             status_approval: statusApproval,
         });
+
+        // Orang tua: link anak langsung setelah akun dibuat
+        if (role === 'orangtua' && kodeAnak) {
+            try {
+                await this.usersService.linkAnakViaKode(newUser.id, kodeAnak);
+            } catch (e) {
+                console.error('[auth] gagal link anak saat register:', e?.message || e);
+            }
+        }
 
         // Kirim email verifikasi. Kalau SMTP bermasalah, pendaftaran tetap dianggap sukses.
         try {
