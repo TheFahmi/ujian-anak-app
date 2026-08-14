@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import TopAppBar from '@/components/TopAppBar';
 
 const LEVEL_LABEL = (l: number) => (l === 0 ? 'TK' : `Kelas ${l}`);
-const LEVEL_EMOJI = ['🌱', '🌿', '🍀', '🌳', '🎄', '🌟', '🚀'];
+const LEVEL_ICON = ['🌱', '🌿', '🍀', '🌳', '🎄', '🌟', '🚀'];
 
 interface MapelProgress {
     subjectId: string;
@@ -83,7 +83,7 @@ export default function AdaptiveDashboardPage() {
             <TopAppBar title="Belajar Adaptif" showBack />
             <div className="px-6 pt-20">
                 <h1 className="font-[var(--font-fredoka)] text-2xl text-[#0f172a] mb-1">
-                    Belajar Sesuai Kemampuanmu! 🌟
+                    Belajar Sesuai Kemampuanmu
                 </h1>
                 <div className="flex items-center justify-between mb-6">
                     <p className="text-sm text-gray-500">
@@ -99,10 +99,10 @@ export default function AdaptiveDashboardPage() {
 
                 {rekomendasi && (
                     <div className="bg-[#6c5ce7] text-white rounded-3xl p-5 mb-6 shadow-[4px_4px_0px_#0f172a] border-2 border-[#0f172a]">
-                        <p className="text-xs font-bold uppercase tracking-wide text-white/70 mb-1">📅 Rekomendasi Hari Ini</p>
+                        <p className="text-xs font-bold uppercase tracking-wide text-white/70 mb-1">Rekomendasi Hari Ini</p>
                         <p className="font-bold text-white">{rekomendasi.rekomendasi}</p>
                         {rekomendasi.target && (
-                            <p className="text-sm text-white/80 mt-1">🎯 Target: {rekomendasi.target}</p>
+                            <p className="text-sm text-white/80 mt-1">Target: {rekomendasi.target}</p>
                         )}
                     </div>
                 )}
@@ -132,12 +132,12 @@ export default function AdaptiveDashboardPage() {
                                             <div>
                                                 <p className="font-bold text-[#0f172a]">{m.nama}</p>
                                                 <p className="text-xs text-gray-500">
-                                                    {LEVEL_EMOJI[m.level]} Level {LEVEL_LABEL(m.level)}
+                                                    {LEVEL_ICON[m.level]} Level {LEVEL_LABEL(m.level)}
                                                 </p>
                                             </div>
                                         </div>
                                         <span className="text-xs font-bold text-[#6c5ce7] bg-[#6c5ce7]/10 px-3 py-1.5 rounded-xl">
-                                            ⭐ {m.stars}
+                                            Bintang {m.stars}
                                         </span>
                                     </div>
                                     {/* Progress bar */}
@@ -155,7 +155,7 @@ export default function AdaptiveDashboardPage() {
                                         <div className="flex flex-wrap gap-1.5 mt-2.5">
                                             {m.badges.map(b => (
                                                 <span key={b} className="text-xs font-bold text-[#92400e] bg-[#fef3c7] border border-[#fbbf24] px-2.5 py-1 rounded-xl">
-                                                    🏅 {b}
+                                                    {b}
                                                 </span>
                                             ))}
                                         </div>

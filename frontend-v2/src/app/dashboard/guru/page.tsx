@@ -301,10 +301,10 @@ export default function TeacherDashboardPage() {
                                                 <div key={m.subjectId} className="flex items-center justify-between bg-[#f8fafc] rounded-xl px-3 py-2">
                                                     <div className="min-w-0">
                                                         <p className="text-xs font-bold text-[#0f172a] truncate">{m.nama}</p>
-                                                        <p className="text-[11px] text-gray-500">{m.mastered} skill • ⭐{m.stars}</p>
+                                                        <p className="text-[11px] text-gray-500">{m.mastered} skill • Bintang {m.stars}</p>
                                                     </div>
                                                     <div className="flex items-center gap-2 shrink-0">
-                                                        {m.badges?.length > 0 && <span title={m.badges[0]}>🏅</span>}
+                                                        {m.badges?.length > 0 && <span title={m.badges[0]} className="material-symbols-outlined text-sm text-[#f59e0b]">military_tech</span>}
                                                         <span className="text-xs font-bold text-[#6c5ce7] bg-[#6c5ce7]/10 px-2.5 py-1 rounded-xl">
                                                             {m.levelLabel}
                                                         </span>

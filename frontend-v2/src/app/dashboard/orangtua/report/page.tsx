@@ -173,13 +173,13 @@ export default function ParentReportPage() {
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-3 text-xs text-gray-500">
-                                        <span>⭐ {a.stars} bintang</span>
+                                        <span>{a.stars} bintang</span>
                                         <span>•</span>
                                         <span>{a.mastered} skill dikuasai</span>
                                         {a.badges?.length > 0 && (
                                             <>
                                                 <span>•</span>
-                                                {a.badges.map((b: string) => <span key={b} title={b}>🏅</span>)}
+                                                {a.badges.map((b: string) => <span key={b} title={b} className="material-symbols-outlined text-sm text-[#f59e0b]">military_tech</span>)}
                                             </>
                                         )}
                                     </div>
@@ -187,7 +187,7 @@ export default function ParentReportPage() {
                                         <div className="flex flex-wrap gap-1.5 mt-2.5">
                                             {a.sertifikat.map((s: any, i: number) => (
                                                 <span key={i} className="text-[11px] font-bold text-[#92400e] bg-[#fef3c7] border border-[#fbbf24] px-2 py-0.5 rounded-lg">
-                                                    📜 {s.nama}
+                                                    {s.nama}
                                                 </span>
                                             ))}
                                         </div>

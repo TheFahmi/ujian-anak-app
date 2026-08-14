@@ -36,17 +36,17 @@ export default function KoleksiPage() {
         <div className="min-h-screen bg-[#fdfbf7] pb-32">
             <TopAppBar title="Koleksiku" showBack />
             <div className="px-6 pt-20 max-w-lg mx-auto">
-                <h1 className="font-[var(--font-fredoka)] text-2xl text-[#0f172a] mb-1">Koleksiku 🏆</h1>
+                <h1 className="font-[var(--font-fredoka)] text-2xl text-[#0f172a] mb-1">Koleksiku</h1>
                 <p className="text-sm text-gray-500 mb-6">Semua sertifikat & badge yang kamu raih!</p>
 
                 {/* Badges */}
                 {badges.length > 0 && (
                     <div className="mb-6">
-                        <h2 className="font-[var(--font-fredoka)] text-lg text-[#0f172a] mb-3">🏅 Badge</h2>
+                        <h2 className="font-[var(--font-fredoka)] text-lg text-[#0f172a] mb-3">Badge</h2>
                         <div className="flex flex-wrap gap-2">
                             {badges.map(b => (
                                 <span key={b} className="text-sm font-bold text-[#92400e] bg-[#fef3c7] border border-[#fbbf24] px-4 py-2 rounded-xl">
-                                    🏅 {b}
+                                    {b}
                                 </span>
                             ))}
                         </div>
@@ -54,7 +54,7 @@ export default function KoleksiPage() {
                 )}
 
                 {/* Sertifikat */}
-                <h2 className="font-[var(--font-fredoka)] text-lg text-[#0f172a] mb-3">📜 Sertifikat</h2>
+                <h2 className="font-[var(--font-fredoka)] text-lg text-[#0f172a] mb-3">Sertifikat</h2>
                 {loading ? (
                     <p className="text-center py-10 text-gray-400">Memuat...</p>
                 ) : koleksi.length === 0 ? (
@@ -66,7 +66,7 @@ export default function KoleksiPage() {
                             onClick={() => router.push('/dashboard/siswa/adaptif')}
                             className="mt-4 bg-[#6c5ce7] text-white border-2 border-[#0f172a] rounded-2xl px-6 py-2.5 font-bold shadow-[3px_3px_0px_#0f172a]"
                         >
-                            🚀 Mulai Belajar
+                            Mulai Belajar
                         </button>
                     </div>
                 ) : (
@@ -78,7 +78,9 @@ export default function KoleksiPage() {
                                 className="w-full bg-white rounded-3xl border-2 border-[#e2e8f0] shadow-[4px_4px_0px_#e2e8f0] p-5 text-left transition-all active:translate-y-1 active:shadow-none"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="text-4xl">📜</div>
+                                    <div className="text-4xl">
+                                        <span className="material-symbols-outlined text-4xl text-[#f59e0b]">workspace_premium</span>
+                                    </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="font-bold text-[#0f172a] truncate">{s.nama}</p>
                                         <p className="text-xs text-gray-500">
@@ -97,7 +99,9 @@ export default function KoleksiPage() {
             {selected && (
                 <div className="fixed inset-0 z-[2000] bg-black/60 flex items-center justify-center p-6">
                     <div className="bg-white rounded-3xl p-8 w-full max-w-sm text-center border-4 border-[#fbbf24]">
-                        <div className="text-6xl mb-3">📜</div>
+                        <div className="text-6xl mb-3">
+                            <span className="material-symbols-outlined text-6xl text-[#f59e0b]">workspace_premium</span>
+                        </div>
                         <p className="text-xs font-bold text-[#f59e0b] uppercase tracking-widest mb-1">Sertifikat</p>
                         <h2 className="font-[var(--font-fredoka)] text-xl text-[#0f172a] mb-2">{selected.nama}</h2>
                         <p className="text-sm text-gray-500 mb-1">Diberikan kepada</p>

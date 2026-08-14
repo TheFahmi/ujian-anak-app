@@ -8,9 +8,9 @@ import { useToast } from '@/context/ToastContext';
 const KELAS_PILIHAN = ['TK', 'Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'];
 
 const ROLE_LIST = [
-    { id: 'siswa', label: 'Siswa', icon: '🎒', desc: 'Kerjakan ujian & belajar adaptif' },
-    { id: 'guru', label: 'Guru', icon: '👨‍🏫', desc: 'Kelola soal & pantau siswa' },
-    { id: 'orangtua', label: 'Orang Tua', icon: '👪', desc: 'Pantau perkembangan anak' },
+    { id: 'siswa', label: 'Siswa', icon: 'backpack', desc: 'Kerjakan ujian & belajar adaptif' },
+    { id: 'guru', label: 'Guru', icon: 'school', desc: 'Kelola soal & pantau siswa' },
+    { id: 'orangtua', label: 'Orang Tua', icon: 'family_restroom', desc: 'Pantau perkembangan anak' },
 ];
 
 export default function RegisterPage() {
@@ -97,7 +97,9 @@ export default function RegisterPage() {
         return (
             <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center p-6">
                 <div className="w-full max-w-md text-center bg-white rounded-3xl border-2 border-[#e2e8f0] shadow-[6px_6px_0px_#e2e8f0] p-8">
-                    <div className="text-6xl mb-4">⏳</div>
+                    <div className="text-6xl mb-4">
+                        <span className="material-symbols-outlined text-6xl text-[#f59e0b]">hourglass_top</span>
+                    </div>
                     <h1 className="font-[var(--font-fredoka)] text-2xl text-[#0f172a] mb-2">Menunggu Persetujuan</h1>
                     <p className="text-gray-500 text-sm mb-6">
                         Pendaftaran guru kamu diterima! Admin akan memeriksa dan menyetujui akunmu.
@@ -116,7 +118,9 @@ export default function RegisterPage() {
         return (
             <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center p-6">
                 <div className="w-full max-w-md text-center bg-white rounded-3xl border-2 border-[#e2e8f0] shadow-[6px_6px_0px_#e2e8f0] p-8">
-                    <div className="text-6xl mb-4">🎉</div>
+                    <div className="text-6xl mb-4">
+                        <span className="material-symbols-outlined text-6xl text-[#22c55e]">check_circle</span>
+                    </div>
                     <h1 className="font-[var(--font-fredoka)] text-2xl text-[#0f172a] mb-2">Akun Berhasil Dibuat!</h1>
                     <p className="text-gray-500 text-sm">Selamat datang! Kamu akan dialihkan sebentar lagi...</p>
                 </div>
@@ -128,7 +132,9 @@ export default function RegisterPage() {
         <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center p-4 py-10">
             <div className="w-full max-w-md">
                 <div className="text-center mb-6">
-                    <div className="text-5xl mb-2">📚</div>
+                    <div className="text-5xl mb-2">
+                        <span className="material-symbols-outlined text-5xl text-[#6c5ce7]">menu_book</span>
+                    </div>
                     <h1 className="font-[var(--font-fredoka)] text-3xl text-[#0f172a] m-0">Daftar TemanUjian</h1>
                     <p className="text-gray-500 mt-1">Pilih peranmu, yuk mulai!</p>
                 </div>
@@ -148,7 +154,9 @@ export default function RegisterPage() {
                                         : 'bg-white border-gray-200 hover:border-[#6c5ce7]/50'
                                 }`}
                             >
-                                <div className="text-2xl mb-1">{r.icon}</div>
+                                <div className="text-2xl mb-1">
+                                    <span className={`material-symbols-outlined text-2xl ${role === r.id ? 'text-[#6c5ce7]' : 'text-[#64748b]'}`}>{r.icon}</span>
+                                </div>
                                 <p className={`text-xs font-bold ${role === r.id ? 'text-[#6c5ce7]' : 'text-[#0f172a]'}`}>{r.label}</p>
                             </button>
                         ))}
@@ -224,7 +232,7 @@ export default function RegisterPage() {
                         disabled={loading}
                         className="w-full mt-5 bg-[#f4c025] text-[#0f172a] border-2 border-[#0f172a] rounded-2xl py-3.5 font-bold shadow-[4px_4px_0px_#0f172a] active:translate-y-1 active:shadow-none disabled:opacity-50"
                     >
-                        {loading ? 'Membuat akun...' : '🚀 Daftar Sekarang'}
+                        {loading ? 'Membuat akun...' : 'Daftar Sekarang'}
                     </button>
 
                     <p className="text-center text-sm text-gray-500 mt-4">

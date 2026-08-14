@@ -91,7 +91,9 @@ export default function LatihanPage() {
                 {phase === 'intro' && (
                     <>
                         <div className="text-center mb-6">
-                            <div className="text-6xl mb-3">📚</div>
+                            <div className="text-6xl mb-3">
+                                <span className="material-symbols-outlined text-6xl text-[#6c5ce7]">menu_book</span>
+                            </div>
                             <h1 className="font-[var(--font-fredoka)] text-2xl text-[#0f172a] mb-2">
                                 Latihan Intensif
                             </h1>
@@ -111,7 +113,7 @@ export default function LatihanPage() {
                             disabled={loading}
                             className="w-full bg-[#6c5ce7] text-white border-2 border-[#0f172a] rounded-2xl py-4 font-bold shadow-[4px_4px_0px_#0f172a] active:translate-y-1 active:shadow-none disabled:opacity-50"
                         >
-                            {loading ? 'Menyiapkan latihan...' : '📝 Mulai Latihan'}
+                            {loading ? 'Menyiapkan latihan...' : 'Mulai Latihan'}
                         </button>
                     </>
                 )}
@@ -181,7 +183,7 @@ export default function LatihanPage() {
                             onClick={selesai}
                             className="w-full bg-[#f4c025] text-[#0f172a] border-2 border-[#0f172a] rounded-2xl py-4 font-bold shadow-[4px_4px_0px_#0f172a] active:translate-y-1 active:shadow-none"
                         >
-                            ✅ Selesai
+                            Selesai
                         </button>
                     </>
                 )}
@@ -189,7 +191,11 @@ export default function LatihanPage() {
                 {phase === 'result' && result && (
                     <>
                         <div className="text-center mb-6">
-                            <div className="text-7xl mb-3">{result.kuasai ? '🌟' : '💪'}</div>
+                            <div className="text-7xl mb-3">
+                                <span className="material-symbols-outlined text-7xl" style={{ color: result.kuasai ? '#22c55e' : '#f59e0b' }}>
+                                    {result.kuasai ? 'military_tech' : 'fitness_center'}
+                                </span>
+                            </div>
                             <h1 className="font-[var(--font-fredoka)] text-2xl text-[#0f172a] mb-2">
                                 {result.kuasai ? 'Skill Dikuasai!' : 'Terus Berlatih'}
                             </h1>
@@ -209,7 +215,9 @@ export default function LatihanPage() {
                         </div>
                         {result.badgeBaru && (
                             <div className="mb-5 bg-[#fef3c7] border-2 border-[#fbbf24] rounded-2xl p-4 text-center">
-                                <p className="text-3xl mb-1">🏅</p>
+                                <p className="text-3xl mb-1">
+                                    <span className="material-symbols-outlined text-3xl text-[#f59e0b]">military_tech</span>
+                                </p>
                                 <p className="font-bold text-[#92400e]">Badge Baru!</p>
                                 <p className="text-sm text-[#92400e]">{result.badgeBaru}</p>
                             </div>

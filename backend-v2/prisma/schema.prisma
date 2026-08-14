@@ -26,6 +26,7 @@ model User {
   // siswa & hasil dari kelas ini. Kosong = tidak terbatas kelas.
   kelas_assign       String[] @default([])
   status_approval   String   @default("active")
+  kode_ortua        String?  @unique
   avatar             String   @default("/images/profil-avatar-dino.png")
   children           String[] @default([])
   createdAt          DateTime @default(now())

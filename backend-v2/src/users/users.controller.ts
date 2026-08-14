@@ -5,6 +5,27 @@ import { UsersService } from './users.service';
 export class UsersController {
     constructor(private usersService: UsersService) { }
 
+    // Kode unik siswa utk orang tua
+    @Get('api/user/:id/kode-ortua')
+    async getKodeOrtuaApi(@Param('id') id: string) {
+        try {
+            const kode = await this.usersService.getKodeOrtua(id);
+            return { success: true, kode };
+        } catch (e: any) {
+            throw new BadRequestException(e?.message || 'Gagal ambil kode');
+        }
+    }
+
+    // Orang tua link anak via kode
+    @Put('api/user/:id/link-anak')
+    async linkAnakApi(@Param('id') id: string, @Body('kode') kode: string) {
+        try {
+            return await this.usersService.linkAnakViaKode(id, kode);
+        } catch (e: any) {
+            throw new BadRequestException(e?.message || 'Gagal hubungkan anak');
+        }
+    }
+
     // Original backend endpoint: GET /api/user/:id
     @Get('api/user/:id')
     async getUserApi(@Param('id') id: string) {

@@ -140,7 +140,9 @@ export default function AdaptiveAssessmentPage() {
                 {phase === 'intro' && (
                     <>
                         <div className="text-center mb-6">
-                            <div className="text-6xl mb-3">🎯</div>
+                            <div className="text-6xl mb-3">
+                                <span className="material-symbols-outlined text-6xl text-[#6c5ce7]">track_changes</span>
+                            </div>
                             <h1 className="font-[var(--font-fredoka)] text-2xl text-[#0f172a] mb-2">
                                 Assessment Adaptif
                             </h1>
@@ -165,7 +167,7 @@ export default function AdaptiveAssessmentPage() {
                             </div>
                             <div className="flex justify-between text-sm mb-4">
                                 <span className="text-gray-500">Bintang</span>
-                                <span className="font-bold text-[#6c5ce7]">⭐ {progress?.stars ?? 0}</span>
+                                <span className="font-bold text-[#6c5ce7]">Bintang {progress?.stars ?? 0}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-500">Skill dikuasai</span>
@@ -175,7 +177,7 @@ export default function AdaptiveAssessmentPage() {
                         {/* Skill tree jalur */}
                         {skillTree.length > 0 && (
                             <div className="bg-white rounded-3xl border-2 border-[#e2e8f0] shadow-[4px_4px_0px_#e2e8f0] p-5 mb-6">
-                                <p className="font-[var(--font-fredoka)] font-bold text-[#0f172a] mb-3">🗺️ Jalur Belajarmu</p>
+                                <p className="font-[var(--font-fredoka)] font-bold text-[#0f172a] mb-3">Jalur Belajarmu</p>
                                 <div className="flex flex-col gap-1.5">
                                     {[0, 1, 2, 3, 4, 5, 6].map(lv => {
                                         const skills = skillTree.filter(s => s.level === lv);
@@ -220,14 +222,14 @@ export default function AdaptiveAssessmentPage() {
                                 disabled={loading}
                                 className="w-full bg-[#f4c025] text-[#0f172a] border-2 border-[#0f172a] rounded-2xl py-4 font-bold shadow-[4px_4px_0px_#0f172a] active:translate-y-1 active:shadow-none disabled:opacity-50"
                             >
-                                {loading ? 'Menyiapkan soal...' : '🚀 Mulai Assessment'}
+                                {loading ? 'Menyiapkan soal...' : 'Mulai Assessment'}
                             </button>
                             <button
                                 onClick={() => router.push(`/dashboard/siswa/adaptif/${subjectId}/latihan/${progress?.currentSkillId || ''}`)}
                                 disabled={!progress?.currentSkillId}
                                 className="w-full bg-[#6c5ce7] text-white border-2 border-[#0f172a] rounded-2xl py-4 font-bold shadow-[4px_4px_0px_#0f172a] active:translate-y-1 active:shadow-none disabled:opacity-40"
                             >
-                                📚 Lanjut Latihan Skill
+                                Lanjut Latihan Skill
                             </button>
                         </div>
                         <p className="text-center text-xs text-gray-400 mt-4">
@@ -290,7 +292,7 @@ export default function AdaptiveAssessmentPage() {
                             disabled={loading}
                             className="w-full bg-[#f4c025] text-[#0f172a] border-2 border-[#0f172a] rounded-2xl py-4 font-bold shadow-[4px_4px_0px_#0f172a] active:translate-y-1 active:shadow-none disabled:opacity-50"
                         >
-                            {loading ? 'Menilai...' : '✅ Selesai, Nilai Saya!'}
+                            {loading ? 'Menilai...' : 'Selesai, Nilai Saya!'}
                         </button>
                     </>
                 )}
@@ -299,7 +301,11 @@ export default function AdaptiveAssessmentPage() {
                 {phase === 'result' && result && (
                     <>
                         <div className="text-center mb-6">
-                            <div className="text-7xl mb-3">{result.naik ? '🎉' : result.turun ? '💪' : '👏'}</div>
+                            <div className="text-7xl mb-3">
+                                <span className="material-symbols-outlined text-7xl" style={{ color: result.naik ? '#22c55e' : result.turun ? '#f59e0b' : '#6c5ce7' }}>
+                                    {result.naik ? 'celebration' : result.turun ? 'trending_down' : 'sentiment_satisfied'}
+                                </span>
+                            </div>
                             <h1 className="font-[var(--font-fredoka)] text-2xl text-[#0f172a] mb-2">
                                 {result.naik ? 'Naik Level!' : result.turun ? 'Turun Level' : 'Level Tetap'}
                             </h1>
@@ -337,7 +343,9 @@ export default function AdaptiveAssessmentPage() {
                         </div>
                         {result.badgeBaru && (
                             <div className="mt-4 bg-[#fef3c7] border-2 border-[#fbbf24] rounded-2xl p-4 text-center">
-                                <p className="text-3xl mb-1">🏅</p>
+                                <p className="text-3xl mb-1">
+                                    <span className="material-symbols-outlined text-3xl text-[#f59e0b]">military_tech</span>
+                                </p>
                                 <p className="font-bold text-[#92400e]">Badge Baru!</p>
                                 <p className="text-sm text-[#92400e]">{result.badgeBaru}</p>
                             </div>
@@ -350,7 +358,9 @@ export default function AdaptiveAssessmentPage() {
             {showSertifikat && result && (result.sertifikatBaru || result.badgeBaru) && (
                 <div className="fixed inset-0 z-[2000] bg-black/60 flex items-center justify-center p-6">
                     <div className="bg-white rounded-3xl p-8 w-full max-w-sm text-center border-4 border-[#fbbf24]">
-                        <div className="text-6xl mb-3">📜</div>
+                        <div className="text-6xl mb-3">
+                            <span className="material-symbols-outlined text-6xl text-[#f59e0b]">workspace_premium</span>
+                        </div>
                         <p className="text-xs font-bold text-[#f59e0b] uppercase tracking-widest mb-1">Sertifikat</p>
                         <h2 className="font-[var(--font-fredoka)] text-2xl text-[#0f172a] mb-2">
                             {result.badgeBaru || result.sertifikatBaru}
@@ -360,13 +370,13 @@ export default function AdaptiveAssessmentPage() {
                         </p>
                         <p className="font-bold text-xl text-[#0f172a] mb-4">{user?.username}</p>
                         <p className="text-xs text-gray-400 mb-6">
-                            {result.sertifikatBaru ? `Level ${result.levelLabel} tercapai!` : 'Semua skill dikuasai!'} — Terus belajar ya! 🌟
+                            {result.sertifikatBaru ? `Level ${result.levelLabel} tercapai!` : 'Semua skill dikuasai!'} — Terus belajar ya!
                         </p>
                         <button
                             onClick={() => setShowSertifikat(false)}
                             className="w-full bg-[#f4c025] text-[#0f172a] border-2 border-[#0f172a] rounded-2xl py-3 font-bold shadow-[4px_4px_0px_#0f172a]"
                         >
-                            🎉 Hebat! Lanjut
+                            Hebat! Lanjut
                         </button>
                     </div>
                 </div>

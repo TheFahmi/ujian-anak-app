@@ -235,6 +235,16 @@ export default function ProfilPage() {
             <div className="p-4 pt-4 flex flex-col gap-4">
                 <button
                     className="flex items-center gap-4 rounded-2xl p-4 border-2 border-[#e2e8f0] shadow-[4px_4px_0px_#e2e8f0] bg-white no-underline text-inherit cursor-pointer hover:bg-gray-50 transition-colors active:translate-y-0.5 active:shadow-none"
+                    onClick={() => router.push('/dashboard/siswa/kode-ortua')}
+                >
+                    <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center border-2 border-purple-200">
+                        <span className="material-symbols-outlined text-purple-600 text-xl">family_restroom</span>
+                    </div>
+                    <p className="flex-grow text-[#0f172a] font-bold m-0">Kode Orang Tua</p>
+                    <span className="material-symbols-outlined text-[#64748b] text-2xl">chevron_right</span>
+                </button>
+                <button
+                    className="flex items-center gap-4 rounded-2xl p-4 border-2 border-[#e2e8f0] shadow-[4px_4px_0px_#e2e8f0] bg-white no-underline text-inherit cursor-pointer hover:bg-gray-50 transition-colors active:translate-y-0.5 active:shadow-none"
                     onClick={handleSettings}
                 >
                     <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center border-2 border-blue-200">
