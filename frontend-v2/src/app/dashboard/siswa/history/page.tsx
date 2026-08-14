@@ -113,8 +113,10 @@ export default function ExamHistoryPage() {
     if (loading) {
         return (
             <>
-                <TopAppBar title="Riwayat Ujian" variant="simple" showBack />
-                <div className="flex flex-col gap-4 p-4">
+                <div className="md:hidden">
+                    <TopAppBar title="Riwayat Ujian" variant="simple" showBack />
+                </div>
+                <div className="flex flex-col gap-4 p-4 pt-20 md:pt-0">
                     {[1, 2, 3, 4].map((i) => (
                         <div key={i} className="bg-white rounded-3xl p-4 border-2 border-[#e2e8f0] shadow-[4px_4px_0px_#e2e8f0]">
                             <div className="h-4 bg-gray-200 rounded-lg animate-skeleton mb-3 w-2/3"></div>
@@ -129,14 +131,27 @@ export default function ExamHistoryPage() {
 
     return (
         <>
-            <TopAppBar title="Riwayat Ujian" variant="simple" showBack />
+            <div className="md:hidden">
+                <TopAppBar title="Riwayat Ujian" variant="simple" showBack />
+            </div>
 
-            <div className="flex flex-col gap-4 p-4">
+            <div className="flex flex-col gap-4 p-4 pt-20 md:pt-0">
                 {results.length === 0 ? (
-                    <div className="bg-white rounded-[2rem] p-8 text-center border-2 border-[#e2e8f0] shadow-[4px_4px_0px_#e2e8f0]">
-                        <div className="mb-4 animate-bounce flex justify-center"><FileText className="w-16 h-16 text-gray-400" /></div>
-                        <p className="text-[#0f172a] text-lg font-bold mb-2 font-[var(--font-fredoka)]">Belum ada hasil ujian</p>
-                        <p className="text-[#64748b] text-sm">Ayo kerjakan soal untuk melihat hasilnya di sini!</p>
+                    <div className="bg-white rounded-[2rem] px-6 py-10 flex flex-col items-center text-center border-2 border-[#dbeafe] shadow-[4px_4px_0px_rgba(43,140,238,0.15)]">
+                        <div className="w-20 h-20 rounded-full bg-[#eff6ff] border-2 border-[#dbeafe] flex items-center justify-center mb-4">
+                            <FileText className="w-9 h-9 text-[#2b8cee]" strokeWidth={1.7} />
+                        </div>
+                        <p className="text-[#0f172a] text-lg font-bold m-0 mb-2 font-[var(--font-fredoka)]">Belum ada hasil ujian</p>
+                        <p className="text-[#64748b] text-sm m-0 mb-5 max-w-[17rem]">
+                            Setiap ujian yang kamu kerjakan akan muncul di sini lengkap dengan nilainya.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => router.push("/dashboard/siswa/quizzes")}
+                            className="px-6 py-2.5 rounded-xl text-sm font-bold border-2 bg-[#2b8cee] border-[#1a6bb5] text-white cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,0.2)] active:translate-y-0.5 active:shadow-none transition-all duration-200"
+                        >
+                            Cari ujian
+                        </button>
                     </div>
                 ) : (
                     results.map((result, index) => (

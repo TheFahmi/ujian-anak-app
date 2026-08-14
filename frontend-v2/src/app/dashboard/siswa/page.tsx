@@ -146,7 +146,7 @@ export default function StudentDashboardPage() {
             </div>
 
             {/* Section: Belajar Adaptif */}
-            <div className="px-6 mt-2 mb-6">
+            <div className="px-6 pt-20 md:pt-0 mt-2 mb-6">
                 <button
                     onClick={() => router.push('/dashboard/siswa/adaptif')}
                     className="w-full bg-gradient-to-r from-[#6c5ce7] to-[#a29bfe] text-white rounded-3xl p-5 text-left shadow-lg transition-all active:scale-[0.98]"

@@ -35,9 +35,11 @@ export default function ScoreReportPage() {
 
     return (
         <>
-            <TopAppBar title="Laporanku" showBack />
+            <div className="md:hidden">
+                <TopAppBar title="Laporanku" showBack />
+            </div>
 
-            <div className="px-6 max-w-md mx-auto">
+            <div className="px-6 pt-20 md:pt-0 max-w-md mx-auto">
                 {/* Summary Cards */}
                 <div className="grid grid-cols-2 gap-4 mb-8">
                     <div className="bg-white p-4 rounded-[2rem] border-2 border-[#e2e8f0] shadow-[4px_4px_0px_#e2e8f0]">

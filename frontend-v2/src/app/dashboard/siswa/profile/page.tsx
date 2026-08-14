@@ -55,7 +55,7 @@ export default function ProfilPage() {
                     <div className="w-24 h-6 bg-gray-200 rounded-lg animate-pulse"></div>
                     <div className="w-12 h-12"></div>
                 </div>
-                <div className="p-4 pt-6">
+                <div className="p-4 pt-20 md:pt-0">
                     <div className="flex w-full flex-col gap-6 items-center">
                         <div className="w-32 h-32 rounded-full bg-gray-200 border-4 border-gray-300 animate-pulse"></div>
                         <div className="w-40 h-8 bg-gray-200 rounded-lg animate-pulse"></div>
@@ -83,7 +83,7 @@ export default function ProfilPage() {
             </div>
 
             {/* ProfileHeader */}
-            <div className="p-4 pt-6">
+            <div className="p-4 pt-20 md:pt-0">
                 <div className="flex w-full flex-col gap-6 items-center">
                     <div className="flex gap-4 flex-col items-center relative">
                         <div className="absolute -top-6 -right-6 animate-bounce delay-700"><Sparkles className="w-10 h-10 text-yellow-400" /></div>

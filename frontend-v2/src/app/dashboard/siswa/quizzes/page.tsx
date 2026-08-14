@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import TopAppBar from '@/components/TopAppBar';
 import { useAuth } from '@/context/AuthContext';
-import { Search } from 'lucide-react';
+import { Search, BookOpenCheck } from 'lucide-react';
 
 interface Subject {
     id: string;
@@ -104,8 +104,10 @@ export default function QuizSiswaPage() {
     if (isLoading || loading) {
         return (
             <>
-                <TopAppBar title="Ujian" variant="simple" showBack={true} />
-                <div className="px-4 pt-2 pb-2">
+                <div className="md:hidden">
+                    <TopAppBar title="Ujian" variant="simple" showBack={true} />
+                </div>
+                <div className="px-4 pt-20 md:pt-0 pb-2">
                     <div className="w-full h-14 bg-white rounded-2xl border-2 border-[#e2e8f0] animate-pulse"></div>
                 </div>
                 <div className="py-3 px-4 bg-[#fdfbf7] sticky top-16 z-10">
@@ -132,10 +134,12 @@ export default function QuizSiswaPage() {
 
     return (
         <>
-            <TopAppBar title="Ujian" variant="simple" showBack={true} />
+            <div className="md:hidden">
+                <TopAppBar title="Ujian" variant="simple" showBack={true} />
+            </div>
 
             {/* History Button */}
-            <div className="px-4 pt-2 pb-2">
+            <div className="px-4 pt-20 md:pt-0 pb-2">
                 <button
                     className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-white rounded-2xl border-2 border-[#e2e8f0] shadow-[4px_4px_0px_#e2e8f0] cursor-pointer transition-all duration-200 active:translate-y-1 active:shadow-none hover:bg-gray-50"
                     onClick={() => router.push('/dashboard/siswa/history')}
@@ -226,10 +230,31 @@ export default function QuizSiswaPage() {
                         );
                     })
                 ) : (
-                    <div className="text-center py-12">
-                        <div className="mb-4 opacity-50 flex justify-center"><Search className="w-16 h-16 text-gray-400" /></div>
-                        <p className="text-[#64748b] font-bold text-lg">Tidak ada ujian yang ditemukan.</p>
-                        <p className="text-[#94a3b8] text-sm">Coba cari dengan kata kunci lain.</p>
+                    <div className="flex flex-col items-center text-center gap-3 px-6 py-10 rounded-2xl bg-white border-2 border-[#dbeafe] shadow-[3px_3px_0px_rgba(43,140,238,0.15)]">
+                        <div className="w-20 h-20 rounded-full bg-[#eff6ff] border-2 border-[#dbeafe] flex items-center justify-center">
+                            {searchQuery ? (
+                                <Search className="w-9 h-9 text-[#2b8cee]" strokeWidth={1.7} />
+                            ) : (
+                                <BookOpenCheck className="w-9 h-9 text-[#2b8cee]" strokeWidth={1.7} />
+                            )}
+                        </div>
+                        <p className="text-[#0f172a] font-bold text-lg m-0">
+                            {searchQuery ? `Tidak ada ujian "${searchQuery}"` : "Belum ada ujian di sini"}
+                        </p>
+                        <p className="text-[#64748b] text-sm m-0 max-w-[17rem]">
+                            {searchQuery
+                                ? "Coba ketik kata lain, atau hapus pencarian untuk lihat semua ujian."
+                                : "Ujian untuk kelasmu belum disiapkan. Coba cek lagi nanti ya!"}
+                        </p>
+                        {searchQuery && (
+                            <button
+                                type="button"
+                                onClick={() => setSearchQuery("")}
+                                className="mt-1 px-6 py-2.5 rounded-xl text-sm font-bold border-2 bg-[#2b8cee] border-[#1a6bb5] text-white cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,0.2)] active:translate-y-0.5 active:shadow-none transition-all duration-200"
+                            >
+                                Hapus pencarian
+                            </button>
+                        )}
                     </div>
                 )}
             </div>

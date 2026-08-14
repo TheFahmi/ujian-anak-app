@@ -80,9 +80,11 @@ export default function RewardsPage() {
 
     return (
         <>
-            <TopAppBar title="Hadiah & Toko" showBack />
+            <div className="md:hidden">
+                <TopAppBar title="Hadiah & Toko" showBack />
+            </div>
 
-            <div className="max-w-md mx-auto">
+            <div className="max-w-md mx-auto pt-20 md:pt-0">
                 <CoinsHeader coins={coins} />
 
                 {/* Tabs */}

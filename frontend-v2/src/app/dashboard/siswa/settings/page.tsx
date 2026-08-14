@@ -117,7 +117,7 @@ export default function SettingsPage() {
       />
       </div>
 
-      <div className="px-6 max-w-md mx-auto">
+      <div className="px-6 pt-20 md:pt-0 max-w-md mx-auto">
         {/* Profile Header */}
         <div className="flex flex-col items-center gap-6 mb-8">
           <div className="relative">
