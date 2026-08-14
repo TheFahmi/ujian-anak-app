@@ -155,7 +155,11 @@ export default function ParentReportPage() {
                     {/* Per Mapel */}
                     <h3 className="font-[var(--font-fredoka)] text-xl text-[#0f172a] mb-3">Nilai per Mata Pelajaran</h3>
                     {report.perMapel.length === 0 ? (
-                        <p className="text-center text-gray-500 py-6 bg-white rounded-2xl border-2 border-[#e2e8f0]">Belum ada ujian dikerjakan.</p>
+                        <div className="text-center py-8 flex flex-col items-center gap-2 bg-white rounded-[2rem] border-2 border-dashed border-[#cbd5e1]">
+                            <span className="material-symbols-outlined text-5xl text-gray-300">assignment</span>
+                            <p className="font-bold text-[#0f172a] m-0">Belum ada ujian dikerjakan</p>
+                            <p className="text-sm text-gray-500 m-0">Nilai per mapel akan muncul setelah anak mengerjakan ujian.</p>
+                        </div>
                     ) : (
                         <div className="flex flex-col gap-3 mb-6">
                             {report.perMapel.map(m => (

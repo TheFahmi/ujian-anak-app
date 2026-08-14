@@ -225,7 +225,11 @@ export default function ParentDashboardPage() {
                                 </div>
                             ))
                         ) : (
-                            <p className="text-center text-gray-500 py-4">Belum ada hasil ujian.</p>
+                            <div className="text-center py-8 flex flex-col items-center gap-2">
+                                <span className="material-symbols-outlined text-5xl text-gray-300">assignment</span>
+                                <p className="font-bold text-[#0f172a] m-0">Belum ada hasil ujian</p>
+                                <p className="text-sm text-gray-500 m-0">Hasil ujian anak akan muncul di sini.</p>
+                            </div>
                         )}
                     </div>
                 </div>

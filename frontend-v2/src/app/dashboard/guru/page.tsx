@@ -194,7 +194,11 @@ export default function TeacherDashboardPage() {
                                 </div>
                             ))
                         ) : (
-                            <p className="text-center text-gray-500 py-4">Belum ada aktivitas terbaru.</p>
+                            <div className="text-center py-8 flex flex-col items-center gap-2">
+                                <span className="material-symbols-outlined text-5xl text-gray-300">history</span>
+                                <p className="font-bold text-[#0f172a] m-0">Belum ada aktivitas</p>
+                                <p className="text-sm text-gray-500 m-0">Hasil ujian siswa akan muncul di sini.</p>
+                            </div>
                         )}
                     </div>
                 </>
@@ -207,7 +211,11 @@ export default function TeacherDashboardPage() {
                         {kelas.length > 0 && <span className="text-sm text-gray-500 ml-2">({kelas.join(', ')})</span>}
                     </h3>
                     {mapel.length === 0 ? (
-                        <p className="text-center text-gray-500 py-8">Belum ada mapel yang di-assign. Hubungi admin.</p>
+                        <div className="text-center py-10 flex flex-col items-center gap-2 bg-white rounded-[2rem] border-2 border-dashed border-[#cbd5e1]">
+                            <span className="material-symbols-outlined text-5xl text-gray-300">menu_book</span>
+                            <p className="font-bold text-[#0f172a] m-0">Belum ada mata pelajaran</p>
+                            <p className="text-sm text-gray-500 m-0">Mapel yang di-assign admin akan muncul di sini.</p>
+                        </div>
                     ) : (
                         <div className="flex flex-col gap-3 md:grid md:grid-cols-2 lg:grid-cols-3">
                             {mapel.map(m => (
@@ -238,11 +246,15 @@ export default function TeacherDashboardPage() {
                         {kelas.length > 0 && <span className="text-sm text-gray-500 ml-2">({kelas.join(', ')})</span>}
                     </h3>
                     {siswa.length === 0 ? (
-                        <p className="text-center text-gray-500 py-8">
-                            {kelas.length > 0
-                                ? `Belum ada siswa di kelas ${kelas.join(', ')}.`
-                                : 'Belum ada siswa terdaftar.'}
-                        </p>
+                        <div className="text-center py-10 flex flex-col items-center gap-2 bg-white rounded-[2rem] border-2 border-dashed border-[#cbd5e1]">
+                            <span className="material-symbols-outlined text-5xl text-gray-300">groups</span>
+                            <p className="font-bold text-[#0f172a] m-0">Belum ada siswa</p>
+                            <p className="text-sm text-gray-500 m-0">
+                                {kelas.length > 0
+                                    ? `Belum ada siswa di kelas ${kelas.join(', ')}.`
+                                    : 'Siswa yang terdaftar akan muncul di sini.'}
+                            </p>
+                        </div>
                     ) : (
                         <div className="flex flex-col gap-3 md:grid md:grid-cols-2 lg:grid-cols-3">
                             {siswa.map(s => (
@@ -281,7 +293,11 @@ export default function TeacherDashboardPage() {
                     {!adaptifData ? (
                         <p className="text-center text-gray-500 py-8">Memuat...</p>
                     ) : adaptifData.siswa.length === 0 ? (
-                        <p className="text-center text-gray-500 py-8">Belum ada siswa.</p>
+                        <div className="text-center py-10 flex flex-col items-center gap-2 bg-white rounded-[2rem] border-2 border-dashed border-[#cbd5e1]">
+                            <span className="material-symbols-outlined text-5xl text-gray-300">track_changes</span>
+                            <p className="font-bold text-[#0f172a] m-0">Belum ada progress adaptif</p>
+                            <p className="text-sm text-gray-500 m-0">Siswa yang mengerjakan assessment akan muncul di sini.</p>
+                        </div>
                     ) : (
                         <div className="flex flex-col gap-3 md:grid md:grid-cols-2 lg:grid-cols-3">
                             {adaptifData.siswa.map((s: any) => (
