@@ -4,7 +4,7 @@ import { GraduationCap, Star, Trophy, Rocket, Gamepad2, Gift, Bot, BarChart3, He
 
 export default function HomePage() {
     return (
-        <div className="min-h-screen w-full bg-[#fdfbf7] font-[var(--font-lexend)] max-w-md md:max-w-5xl lg:max-w-5xl mx-auto overflow-x-hidden">
+        <div className="min-h-screen w-full bg-[#fdfbf7] font-[var(--font-lexend)] max-w-md md:max-w-6xl lg:max-w-6xl mx-auto overflow-x-hidden">
             {/* Navbar Simple */}
             <nav className="p-6 flex justify-between items-center">
                 <div className="flex items-center gap-2">
@@ -20,7 +20,7 @@ export default function HomePage() {
 
             {/* Hero Section */}
             <main className="px-6 pt-4 pb-12 flex flex-col items-center text-center">
-                <div className="relative w-full max-w-[300px] aspect-square mb-8">
+                <div className="relative w-full max-w-[300px] md:max-w-[400px] aspect-square mb-8">
                     {/* Decorative blobs */}
                     <div className="absolute top-0 left-10 w-20 h-20 bg-blue-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
                     <div className="absolute top-0 right-10 w-20 h-20 bg-yellow-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
@@ -45,7 +45,7 @@ export default function HomePage() {
                     </div>
                 </div>
 
-                <h1 className="font-[var(--font-fredoka)] font-bold text-3xl sm:text-4xl text-[#0f172a] leading-tight mb-4">
+                <h1 className="font-[var(--font-fredoka)] font-bold text-3xl sm:text-4xl md:text-5xl text-[#0f172a] leading-tight mb-4">
                     Belajar Jadi <span className="text-[#f4c025] inline-block transform hover:scale-110 transition-transform cursor-default">Petualangan!</span>
                 </h1>
 
@@ -150,7 +150,7 @@ export default function HomePage() {
                         Yuk, Daftar Gratis!
                     </Link>
                 </div>
-                <p className="text-[#94a3b8] text-xs mt-8">© 2024 TemanUjian. Dibuat dengan <Heart className="inline-block w-3 h-3 text-red-500 fill-red-500" /> untuk Siswa Indonesia.</p>
+                <p className="text-[#94a3b8] text-xs mt-8">© {new Date().getFullYear()} TemanUjian. Dibuat dengan <Heart className="inline-block w-3 h-3 text-red-500 fill-red-500" /> untuk Siswa Indonesia.</p>
             </footer>
         </div>
     );

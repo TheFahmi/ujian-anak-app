@@ -108,31 +108,29 @@ export default function ParentDashboardPage() {
             )}
 
             {/* Link Anak via Kode */}
-            <div className="mb-6 bg-white rounded-2xl border-2 border-[#e2e8f0] shadow-[2px_2px_0px_#e2e8f0] p-4">
+            <div className="mb-6 bg-white rounded-2xl border-2 border-[#e2e8f0] shadow-[2px_2px_0px_#e2e8f0] p-5">
                 <div className="flex items-center gap-2 mb-2">
                     <span className="material-symbols-outlined text-[#6c5ce7]">link</span>
                     <p className="font-bold text-[#0f172a] m-0 text-sm">Hubungkan Anak</p>
                 </div>
-                <p className="text-xs text-gray-500 mb-3">
+                <p className="text-xs text-gray-500 mb-4 leading-relaxed">
                     Masukkan kode 6 karakter dari halaman "Kode Orang Tua" di akun anakmu.
                 </p>
-                <div className="flex gap-2">
-                    <input
-                        type="text"
-                        value={kodeInput}
-                        onChange={e => setKodeInput(e.target.value.toUpperCase())}
-                        placeholder="XXXXXX"
-                        maxLength={6}
-                        className="flex-1 p-3 border-2 border-gray-200 rounded-xl text-center font-mono text-lg font-bold tracking-[0.3em] uppercase focus:outline-none focus:border-[#6c5ce7]"
-                    />
-                    <button
-                        onClick={linkAnak}
-                        disabled={linking}
-                        className="bg-[#6c5ce7] text-white border-2 border-[#0f172a] rounded-xl px-5 py-3 font-bold shadow-[2px_2px_0px_#0f172a] disabled:opacity-50"
-                    >
-                        {linking ? '...' : 'Hubungkan'}
-                    </button>
-                </div>
+                <input
+                    type="text"
+                    value={kodeInput}
+                    onChange={e => setKodeInput(e.target.value.toUpperCase())}
+                    placeholder="Masukkan kode di sini"
+                    maxLength={6}
+                    className="w-full p-4 border-2 border-gray-200 rounded-xl text-center font-mono text-xl font-bold tracking-[0.35em] uppercase focus:outline-none focus:border-[#6c5ce7] mb-3"
+                />
+                <button
+                    onClick={linkAnak}
+                    disabled={linking}
+                    className="w-full bg-[#6c5ce7] text-white border-2 border-[#0f172a] rounded-xl py-3.5 font-bold shadow-[3px_3px_0px_#0f172a] active:translate-y-1 active:shadow-none disabled:opacity-50"
+                >
+                    {linking ? 'Menghubungkan...' : 'Hubungkan Anak'}
+                </button>
                 {linkMsg && (
                     <p className={`text-xs mt-2 font-semibold ${linkMsg.includes('berhasil') || linkMsg.includes('terhubung') ? 'text-green-600' : 'text-red-500'}`}>
                         {linkMsg}
