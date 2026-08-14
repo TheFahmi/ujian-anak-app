@@ -7,8 +7,10 @@ export default function ParentProfilePage() {
     const { user, logout } = useAuth();
 
     return (
-        <div className="pt-20 px-6">
-            <TopAppBar title="Profil Orang Tua" showBack />
+        <div className="pt-20 md:pt-8 px-6">
+            <div className="md:hidden">
+                <TopAppBar title="Profil Orang Tua" showBack />
+            </div>
 
             <div className="flex flex-col items-center py-8">
                 <div className="w-24 h-24 bg-gray-200 rounded-full mb-4 border-4 border-[#0f172a]"></div>

@@ -50,7 +50,7 @@ export default function ProfilPage() {
         return (
             <>
                 {/* TopAppBar Skeleton */}
-                <div className="fixed top-0 left-0 right-0 flex items-center justify-between p-4 pb-2 bg-[#fdfbf7]/90 backdrop-blur-sm z-[1000] max-w-md mx-auto">
+                <div className="fixed top-0 left-0 right-0 flex md:hidden items-center justify-between p-4 pb-2 bg-[#fdfbf7]/90 backdrop-blur-sm z-[1000] max-w-md mx-auto">
                     <div className="w-12 h-12 bg-gray-200 rounded-xl animate-pulse"></div>
                     <div className="w-24 h-6 bg-gray-200 rounded-lg animate-pulse"></div>
                     <div className="w-12 h-12"></div>
@@ -71,7 +71,7 @@ export default function ProfilPage() {
     return (
         <>
             {/* TopAppBar */}
-            <div className="fixed top-0 left-0 right-0 flex items-center justify-between p-4 pb-2 bg-[#fdfbf7]/90 backdrop-blur-sm z-[1000] max-w-md mx-auto">
+            <div className="fixed top-0 left-0 right-0 flex md:hidden items-center justify-between p-4 pb-2 bg-[#fdfbf7]/90 backdrop-blur-sm z-[1000] max-w-md mx-auto">
                 <button
                     className="flex w-12 h-12 flex-shrink-0 items-center justify-center bg-white border-2 border-[#e2e8f0] rounded-xl shadow-[2px_2px_0px_#e2e8f0] cursor-pointer text-[#0f172a] active:translate-y-0.5 active:shadow-none transition-all"
                     onClick={handleBack}

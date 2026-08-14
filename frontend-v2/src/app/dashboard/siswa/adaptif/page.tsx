@@ -80,8 +80,10 @@ export default function AdaptiveDashboardPage() {
 
     return (
         <div className="min-h-screen bg-[#fdfbf7] pb-32">
-            <TopAppBar title="Belajar Adaptif" showBack />
-            <div className="px-6 pt-20">
+            <div className="md:hidden">
+                <TopAppBar title="Belajar Adaptif" showBack />
+            </div>
+            <div className="px-6 pt-20 md:pt-8">
                 <h1 className="font-[var(--font-fredoka)] text-2xl text-[#0f172a] mb-1">
                     Belajar Sesuai Kemampuanmu
                 </h1>

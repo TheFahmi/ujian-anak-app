@@ -110,10 +110,12 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-[#fdfbf7] font-['Lexend',sans-serif] pb-32">
+      <div className="md:hidden">
       <TopAppBar
         title="Pengaturan"
         avatarUrl={user.avatar || "/images/avatar-student.png"}
       />
+      </div>
 
       <div className="px-6 max-w-md mx-auto">
         {/* Profile Header */}

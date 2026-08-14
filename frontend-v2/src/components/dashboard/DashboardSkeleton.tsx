@@ -5,10 +5,12 @@ import BottomNavigation from '../BottomNavigation';
 export default function DashboardSkeleton() {
     return (
         <div className="min-h-screen bg-[#fdfbf7] font-['Lexend',sans-serif] pb-32 pt-4 text-[#0f172a] overflow-x-hidden max-w-md md:max-w-md lg:max-w-md mx-auto">
+            <div className="md:hidden">
             <TopAppBar
                 title="Halo, Teman!"
                 avatarUrl="https://lh3.googleusercontent.com/aida-public/AB6AXuAf4sYiGTsAtgl9F-1_3W58mCVOT-5kV55az_D8N-WSf3Kb7e5MVlTTAScPWgcz9exZFpXGPMJ-5EYUFgOVUj-qvymbqzGzi08xXU7I2rnJwkXWl6eNaMh8YlgXJyc4CKk4Ds6M0MrAK5klVMm3xZ4SWSDe-X0a1qZJ7QS8o65k_IEvdjobCV2hDcDPA2F5w2ugbp6_wN2IlpX9JtVEWDLEc1NwL19VI0Og1ikD4UMDLKf0uO_f1wndA36MNqdsZ72v1O6zItt1Uck"
             />
+            </div>
             {/* Skeleton Loading State */}
             <div className="px-6 space-y-8 mt-4">
                 {/* Quiz Seru Skeleton */}
