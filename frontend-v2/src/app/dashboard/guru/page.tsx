@@ -90,7 +90,7 @@ export default function TeacherDashboardPage() {
         }`;
 
     return (
-        <div className="pt-6 pb-8">
+        <div className="pt-20 md:pt-0 px-4 md:px-0 pb-8">
             <div className="mb-6 md:hidden">
                 <div className="md:hidden">
                     <TopAppBar

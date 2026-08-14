@@ -62,12 +62,16 @@ function TeacherExamsContent() {
         }
     }, [user, subjectId]);
 
-    if (loading) return <div className="pt-6"><TopAppBar title="Kelola Ujian" showBack /><p className="text-center py-10 text-gray-500">Loading...</p></div>;
+    if (loading) return <div className="pt-20 md:pt-0 px-4 md:px-0"><div className="md:hidden">
+    <TopAppBar title="Kelola Ujian" showBack />
+</div><p className="text-center py-10 text-gray-500">Loading...</p></div>;
 
     return (
-        <div className="pt-6 pb-8">
+        <div className="pt-20 md:pt-0 px-4 md:px-0 pb-8">
             <div className="mb-6 md:hidden">
-                <TopAppBar title={subject?.nama || 'Kelola Ujian'} showBack />
+                <div className="md:hidden">
+                    <TopAppBar title={subject?.nama || 'Kelola Ujian'} showBack />
+                </div>
             </div>
             <h1 className="mb-6 hidden text-2xl font-bold text-[#171717] md:block">
                 {subject?.nama || 'Kelola Ujian'}
@@ -102,7 +106,7 @@ function TeacherExamsContent() {
 
 export default function TeacherExamsPage() {
     return (
-        <Suspense fallback={<div className="pt-20 px-6"><p className="text-center py-10 text-gray-500">Loading...</p></div>}>
+        <Suspense fallback={<div className="pt-20 md:pt-8 px-6"><p className="text-center py-10 text-gray-500">Loading...</p></div>}>
             <TeacherExamsContent />
         </Suspense>
     );
