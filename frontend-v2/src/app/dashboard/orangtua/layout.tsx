@@ -97,7 +97,7 @@ export default function ParentDashboardLayout({
 
             {/* Main content */}
             <main className="pt-16 md:ml-60">
-                <div className="mx-auto w-full max-w-md px-4 pb-32 md:max-w-6xl md:px-8 md:pb-12">
+                <div className="mx-auto w-full max-w-md px-4 pb-32 md:max-w-5xl md:px-8 md:pb-12">
                     {children}
                 </div>
             </main>
