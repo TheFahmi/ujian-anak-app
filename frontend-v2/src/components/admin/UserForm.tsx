@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PasswordInput from '@/components/PasswordInput';
 
 interface UserFormProps {
     initialData?: any;
@@ -65,10 +66,9 @@ export default function UserForm({ initialData, onSubmit, onCancel, isEditing, s
                         onChange={e => setFormData({ ...formData, username: e.target.value })}
                         required
                     />
-                    <input
-                        className="w-full p-3 border-2 border-gray-200 rounded-lg text-base focus:outline-none focus:border-[#6c5ce7]"
+                    <PasswordInput
+                        inputClassName="w-full p-3 border-2 border-gray-200 rounded-lg text-base focus:outline-none focus:border-[#6c5ce7]"
                         placeholder="Password"
-                        type="password"
                         value={formData.password}
                         onChange={e => setFormData({ ...formData, password: e.target.value })}
                         required={!isEditing}

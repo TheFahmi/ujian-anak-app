@@ -12,6 +12,7 @@ import DraggableAICompanion from '@/components/exam/DraggableAICompanion';
 import { SmartText } from '@/components/RichText';
 import { useAntiCheating, ViolationType } from '@/hooks/useAntiCheating';
 import CryptoJS from 'crypto-js';
+import PasswordInput from '@/components/PasswordInput';
 
 const decryptData = (encryptedData: string) => {
     try {
@@ -488,9 +489,8 @@ export default function ExamPage() {
                         <h2 className="font-[var(--font-fredoka)] text-[#ef4444] text-2xl mb-2">Ujian Terkunci!</h2>
                         <p className="text-[#64748b] text-base mb-4">Kamu terdeteksi keluar dari aplikasi ujian. Panggil guru untuk membuka kunci.</p>
                         <div className="flex flex-col gap-3">
-                            <input
-                                type="password"
-                                className="w-full h-12 px-4 rounded-xl border-2 border-[#e2e8f0] font-bold text-center text-lg focus:border-[#f4c025] focus:outline-none transition-colors"
+                            <PasswordInput
+                                inputClassName="w-full h-12 px-4 rounded-xl border-2 border-[#e2e8f0] font-bold text-center text-lg focus:border-[#f4c025] focus:outline-none transition-colors"
                                 placeholder="Password Guru"
                                 value={exitPassword}
                                 onChange={(e) => setExitPassword(e.target.value)}
@@ -532,12 +532,11 @@ export default function ExamPage() {
                         ) : (
                             <div className="flex flex-col gap-3">
                                 <p className="text-sm font-bold text-[#0f172a] mb-1">Masukkan Password Guru:</p>
-                                <input
-                                    type="password"
-                                    className="w-full h-12 px-4 rounded-xl border-2 border-[#e2e8f0] font-bold text-center text-lg focus:border-[#f4c025] focus:outline-none transition-colors"
+                                <PasswordInput
+                                    inputClassName="w-full h-12 px-4 rounded-xl border-2 border-[#e2e8f0] font-bold text-center text-lg focus:border-[#f4c025] focus:outline-none transition-colors"
                                     placeholder="****"
                                     value={exitPassword}
-                                    onChange={(e) => setExitPassword(e.target.value)}
+                                    onChange={e => setExitPassword(e.target.value)}
                                 />
                                 <div className="flex gap-2 mt-2">
                                     <button

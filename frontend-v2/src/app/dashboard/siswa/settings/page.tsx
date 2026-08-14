@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import TopAppBar from '@/components/TopAppBar';
+import PasswordInput from '@/components/PasswordInput';
 import BottomNavigation from '@/components/BottomNavigation';
 
 export default function SettingsPage() {
@@ -273,18 +274,16 @@ export default function SettingsPage() {
             <div className="flex flex-col gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-bold text-[#64748b]">Kata Sandi Baru</label>
-                <input
-                  type="password"
-                  className="w-full h-12 px-4 rounded-xl border-2 border-[#e2e8f0] focus:border-[#2b8cee] focus:outline-none font-bold text-[#0f172a]"
+                <PasswordInput
+                  inputClassName="w-full h-12 px-4 rounded-xl border-2 border-[#e2e8f0] focus:border-[#2b8cee] focus:outline-none font-bold text-[#0f172a]"
                   value={passwordForm.newPassword}
                   onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-[#64748b]">Konfirmasi Kata Sandi Baru</label>
-                <input
-                  type="password"
-                  className="w-full h-12 px-4 rounded-xl border-2 border-[#e2e8f0] focus:border-[#2b8cee] focus:outline-none font-bold text-[#0f172a]"
+                <PasswordInput
+                  inputClassName="w-full h-12 px-4 rounded-xl border-2 border-[#e2e8f0] focus:border-[#2b8cee] focus:outline-none font-bold text-[#0f172a]"
                   value={passwordForm.confirmPassword}
                   onChange={e => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                 />

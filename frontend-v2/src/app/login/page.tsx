@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import PasswordInput from '@/components/PasswordInput';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useToast } from '@/context/ToastContext';
@@ -113,12 +114,11 @@ export default function LoginPage() {
 
                     <div className="flex flex-col gap-2">
                         <label className="font-bold text-[#0f172a] text-sm ml-1">Password</label>
-                        <input
-                            className="w-full px-4 py-3.5 bg-white border-2 border-[#e2e8f0] text-[#0f172a] rounded-2xl text-base transition-all duration-200 shadow-[4px_4px_0px_#e2e8f0] focus:outline-none focus:border-[#f4c025] focus:shadow-[4px_4px_0px_#f4c025] placeholder:text-gray-400"
-                            placeholder="Ketik password rahasia..."
-                            type="password"
+                        <PasswordInput
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Ketik password rahasia..."
+                            inputClassName="w-full px-4 py-3.5 bg-white border-2 border-[#e2e8f0] text-[#0f172a] rounded-2xl text-base transition-all duration-200 shadow-[4px_4px_0px_#e2e8f0] focus:outline-none focus:border-[#f4c025] focus:shadow-[4px_4px_0px_#f4c025] placeholder:text-gray-400"
                             required
                         />
                     </div>

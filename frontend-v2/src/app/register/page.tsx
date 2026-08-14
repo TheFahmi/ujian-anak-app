@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import PasswordInput from '@/components/PasswordInput';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/context/ToastContext';
@@ -219,23 +220,21 @@ export default function RegisterPage() {
 
                         <div>
                             <label className="block text-xs font-semibold text-gray-500 mb-1">Password</label>
-                            <input
-                                type="password"
+                            <PasswordInput
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
                                 placeholder="Minimal 8 karakter"
-                                className="w-full p-3 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:border-[#6c5ce7]"
+                                inputClassName="w-full p-3 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:border-[#6c5ce7]"
                             />
                         </div>
 
                         <div>
                             <label className="block text-xs font-semibold text-gray-500 mb-1">Konfirmasi Password</label>
-                            <input
-                                type="password"
+                            <PasswordInput
                                 value={konfirmasi}
                                 onChange={e => setKonfirmasi(e.target.value)}
                                 placeholder="Ulangi password"
-                                className="w-full p-3 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:border-[#6c5ce7]"
+                                inputClassName="w-full p-3 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:border-[#6c5ce7]"
                             />
                         </div>
                     </div>
