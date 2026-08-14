@@ -105,7 +105,7 @@ export default function TeacherDashboardPage() {
             </h1>
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-2 mb-6 overflow-x-auto flex-nowrap whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 <button className={navBtn(tab === 'beranda')} onClick={() => setTab('beranda')}>Beranda</button>
                 <button className={navBtn(tab === 'mapel')} onClick={() => setTab('mapel')}>Mapel Saya</button>
                 <button className={navBtn(tab === 'siswa')} onClick={() => setTab('siswa')}>Siswa</button>
