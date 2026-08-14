@@ -255,13 +255,14 @@ export class DashboardService {
             throw new Error('Akses ditolak: anak tidak terdaftar');
         }
 
-        const [child, results] = await Promise.all([
+        const [child, results, riwayatCount] = await Promise.all([
             this.prisma.user.findUnique({ where: { id: childId } }),
             this.prisma.result.findMany({
                 where: { userId: childId },
                 orderBy: { date: 'desc' },
-                take: 200,
+                take: 10,
             }),
+            this.prisma.result.count({ where: { userId: childId } }),
         ]);
 
         if (!child) throw new Error('Anak tidak ditemukan');
@@ -290,7 +291,7 @@ export class DashboardService {
             hasil: e.results,
         }));
 
-        const totalUjian = results.length;
+        const totalUjian = riwayatCount;
         const rataKeseluruhan = totalUjian > 0
             ? Math.round(results.reduce((a, r) => a + r.score, 0) / totalUjian)
             : 0;
@@ -323,7 +324,45 @@ export class DashboardService {
                 correctCount: r.correctCount,
                 totalQuestions: r.totalQuestions,
             })),
+            riwayatTotal: totalUjian,
+            riwayatTotalPages: Math.ceil(totalUjian / 10),
             adaptif: await this.getChildAdaptiveProgress(childId),
+        };
+    }
+
+    // Riwayat ujian anak, paginated (untuk tombol "Muat Lebih Banyak")
+    async getParentReportRiwayat(parentId: string, childId: string, page = 1, limit = 10) {
+        const parent = await this.prisma.user.findUnique({ where: { id: parentId } });
+        if (!parent || !parent.children || !parent.children.includes(childId)) {
+            throw new Error('Akses ditolak: anak tidak terdaftar');
+        }
+        const pageNum = Math.max(1, parseInt(String(page), 10) || 1);
+        const limitNum = Math.min(50, Math.max(1, parseInt(String(limit), 10) || 10));
+        const skip = (pageNum - 1) * limitNum;
+
+        const [total, rows] = await Promise.all([
+            this.prisma.result.count({ where: { userId: childId } }),
+            this.prisma.result.findMany({
+                where: { userId: childId },
+                orderBy: { date: 'desc' },
+                skip,
+                take: limitNum,
+            }),
+        ]);
+
+        return {
+            items: rows.map(r => ({
+                id: r.id,
+                subjectName: r.subjectName,
+                score: r.score,
+                date: r.date,
+                correctCount: r.correctCount,
+                totalQuestions: r.totalQuestions,
+            })),
+            total,
+            page: pageNum,
+            limit: limitNum,
+            totalPages: Math.ceil(total / limitNum),
         };
     }
 

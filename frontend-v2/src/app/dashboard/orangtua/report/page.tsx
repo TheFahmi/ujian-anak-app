@@ -19,6 +19,11 @@ export default function ParentReportPage() {
     const [selectedChildId, setSelectedChildId] = useState('');
     const [report, setReport] = useState<ReportData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [riwayat, setRiwayat] = useState<ReportData['riwayat']>([]);
+    const [riwayatTotal, setRiwayatTotal] = useState(0);
+    const [riwayatPage, setRiwayatPage] = useState(1);
+    const [riwayatTotalPages, setRiwayatTotalPages] = useState(1);
+    const [loadingMore, setLoadingMore] = useState(false);
 
     // Ambil daftar anak
     useEffect(() => {
@@ -51,6 +56,10 @@ export default function ParentReportPage() {
                 const res = await fetch(`/api/dashboard/orangtua/${user.id}/report/${selectedChildId}`);
                 const data = await res.json();
                 setReport(data);
+                setRiwayat(data.riwayat || []);
+                setRiwayatTotal(data.riwayatTotal || (data.riwayat || []).length);
+                setRiwayatTotalPages(data.riwayatTotalPages || 1);
+                setRiwayatPage(1);
             } catch (e) {
                 console.error('Failed to load report', e);
             } finally {
@@ -59,6 +68,25 @@ export default function ParentReportPage() {
         };
         loadReport();
     }, [user, selectedChildId]);
+
+    const loadMoreRiwayat = async () => {
+        if (!user || !selectedChildId || loadingMore) return;
+        setLoadingMore(true);
+        try {
+            const nextPage = riwayatPage + 1;
+            const res = await fetch(`/api/dashboard/orangtua/${user.id}/report/${selectedChildId}/riwayat?page=${nextPage}&limit=10`);
+            const data = await res.json();
+            if (data.items) {
+                setRiwayat(prev => [...prev, ...data.items]);
+                setRiwayatPage(nextPage);
+                setRiwayatTotalPages(data.totalPages || riwayatTotalPages);
+            }
+        } catch (e) {
+            console.error('Failed to load more riwayat', e);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
 
     const scoreColor = (s: number) =>
         s >= 80 ? 'text-green-600' : s >= 60 ? 'text-yellow-600' : 'text-red-500';
@@ -69,8 +97,10 @@ export default function ParentReportPage() {
     if (loading && !report) return <div className="p-8 text-center">Loading Laporan...</div>;
 
     return (
-        <div className="pt-20 px-6 pb-28">
-            <TopAppBar title="Laporan Belajar" showBack />
+        <div className="pt-20 md:pt-8 px-6 pb-28">
+            <div className="md:hidden">
+                <TopAppBar title="Laporan Belajar" showBack />
+            </div>
 
             {/* Pilih anak */}
             {children.length > 1 && (
@@ -220,10 +250,10 @@ export default function ParentReportPage() {
                     {/* Riwayat Lengkap */}
                     <h3 className="font-[var(--font-fredoka)] text-xl text-[#0f172a] mb-3">Riwayat Ujian</h3>
                     <div className="flex flex-col gap-3">
-                        {report.riwayat.length === 0 ? (
+                        {riwayat.length === 0 ? (
                             <p className="text-center text-gray-500 py-4 bg-white rounded-2xl border-2 border-[#e2e8f0]">Belum ada riwayat.</p>
                         ) : (
-                            report.riwayat.map(r => (
+                            riwayat.map(r => (
                                 <div key={r.id} className="bg-white p-4 rounded-2xl border-2 border-[#e2e8f0] flex justify-between items-center">
                                     <div className="flex items-center gap-3">
                                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${r.score >= 70 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'}`}>
@@ -245,6 +275,26 @@ export default function ParentReportPage() {
                                     </div>
                                 </div>
                             ))
+                        )}
+                        {riwayatPage < riwayatTotalPages && (
+                            <button
+                                type="button"
+                                onClick={loadMoreRiwayat}
+                                disabled={loadingMore}
+                                className="w-full py-3 rounded-xl text-sm font-bold border-2 border-[#0f172a] bg-white text-[#0f172a] cursor-pointer transition-all duration-200 active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                                {loadingMore ? (
+                                    <>
+                                        <span className="material-symbols-outlined text-lg animate-spin">progress_activity</span>
+                                        Memuat...
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="material-symbols-outlined text-lg">expand_more</span>
+                                        Muat Lebih Banyak ({riwayatTotalPages - riwayatPage} halaman lagi)
+                                    </>
+                                )}
+                            </button>
                         )}
                     </div>
                 </>

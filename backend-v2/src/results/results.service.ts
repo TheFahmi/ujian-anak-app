@@ -1,22 +1,48 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { Result, ResultDocument } from '../schemas/result.schema';
+import { PrismaService } from '../prisma/prisma.service';
+
+// Frontend v2 masih membaca `result._id` (history & review page), jadi hasil
+// Prisma diberi alias _id = id supaya kontrak API tidak berubah.
+function denganIdLama(row: any) {
+    return { ...row, _id: row.id };
+}
 
 @Injectable()
 export class ResultsService {
-    constructor(
-        @InjectModel(Result.name) private resultModel: Model<ResultDocument>,
-    ) { }
+    constructor(private prisma: PrismaService) { }
 
     // Get all results for a user (original backend logic)
     async getResultsByUser(userId: string) {
-        const results = await this.resultModel.find({ userId }).sort({ date: -1 }).exec();
-        // Ensure _id is serialized as string
-        return results.map(result => ({
-            ...result.toObject(),
-            _id: result._id.toString()
-        }));
+        const results = await this.prisma.result.findMany({
+            where: { userId },
+            orderBy: { date: 'desc' },
+        });
+        return results.map(denganIdLama);
+    }
+
+    // Paginated results for history pages: returns { items, total, page, totalPages }
+    async getResultsPaginated(userId: string, page = 1, limit = 10) {
+        const pageNum = Math.max(1, parseInt(String(page), 10) || 1);
+        const limitNum = Math.min(50, Math.max(1, parseInt(String(limit), 10) || 10));
+        const skip = (pageNum - 1) * limitNum;
+
+        const [total, results] = await Promise.all([
+            this.prisma.result.count({ where: { userId } }),
+            this.prisma.result.findMany({
+                where: { userId },
+                orderBy: { date: 'desc' },
+                skip,
+                take: limitNum,
+            }),
+        ]);
+
+        return {
+            items: results.map(denganIdLama),
+            total,
+            page: pageNum,
+            limit: limitNum,
+            totalPages: Math.ceil(total / limitNum),
+        };
     }
 
     async getResult(id: string) {
@@ -24,25 +50,10 @@ export class ResultsService {
             throw new BadRequestException('Result ID is required');
         }
 
-        // Check if id is a valid ObjectId (24 hex characters)
-        if (!Types.ObjectId.isValid(id)) {
-            console.error(`Invalid result ID format. Received: "${id}" (length: ${id.length}, type: ${typeof id})`);
-            throw new BadRequestException(`Invalid result ID format. Expected MongoDB ObjectId (24 hex characters), got: ${id.substring(0, 50)}`);
+        const result = await this.prisma.result.findUnique({ where: { id } });
+        if (!result) {
+            throw new NotFoundException(`Result not found with ID: ${id}`);
         }
-
-        try {
-            const result = await this.resultModel.findById(id).exec();
-            if (!result) {
-                throw new NotFoundException(`Result not found with ID: ${id}`);
-            }
-            // Ensure _id is serialized as string
-            return {
-                ...result.toObject(),
-                _id: result._id.toString()
-            };
-        } catch (error) {
-            console.error(`Error fetching result with ID "${id}":`, error);
-            throw error;
-        }
+        return denganIdLama(result);
     }
 }

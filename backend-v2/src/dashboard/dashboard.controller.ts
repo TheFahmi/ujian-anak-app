@@ -37,4 +37,14 @@ export class DashboardController {
     async getParentReport(@Param('parentId') parentId: string, @Param('childId') childId: string) {
         return this.dashboardService.getParentReport(parentId, childId);
     }
+
+    @Get('orangtua/:parentId/report/:childId/riwayat')
+    async getParentReportRiwayat(
+        @Param('parentId') parentId: string,
+        @Param('childId') childId: string,
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+    ) {
+        return this.dashboardService.getParentReportRiwayat(parentId, childId, Number(page) || 1, Number(limit) || 10);
+    }
 }

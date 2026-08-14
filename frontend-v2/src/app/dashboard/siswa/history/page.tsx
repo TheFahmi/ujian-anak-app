@@ -53,7 +53,37 @@ export default function ExamHistoryPage() {
     const { addToast } = useToast();
     const [results, setResults] = useState<ExamResult[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [hasMore, setHasMore] = useState(false);
+    const [userId, setUserId] = useState<string | null>(null);
     const [selectedFriend, setSelectedFriend] = useState<AIFriend>(aiFriends[0]);
+
+    const PAGE_SIZE = 10;
+
+    const loadPage = async (targetPage: number, append: boolean) => {
+        if (!userId) return;
+        try {
+            if (append) setLoadingMore(true);
+            const res = await fetch(`/api/results/${userId}?userId=${userId}&paginated=1&page=${targetPage}&limit=${PAGE_SIZE}`);
+            if (!res.ok) throw new Error('Failed');
+            const data = await res.json();
+            if (append) {
+                setResults(prev => [...prev, ...(data.items || [])]);
+            } else {
+                setResults(data.items || []);
+            }
+            setTotalPages(data.totalPages || 1);
+            setHasMore(targetPage < (data.totalPages || 1));
+            setPage(targetPage);
+        } catch (err) {
+            console.error('Error fetching data:', err);
+        } finally {
+            setLoading(false);
+            setLoadingMore(false);
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -61,10 +91,9 @@ export default function ExamHistoryPage() {
                 const storedUser = localStorage.getItem('user');
                 if (storedUser) {
                     const user = JSON.parse(storedUser);
+                    setUserId(user.id);
 
-                    const resultsRes = await fetch(`/api/results/${user.id}`);
-                    const resultsData = await resultsRes.json();
-                    setResults(resultsData);
+                    await loadPage(1, false);
 
                     const rewardsRes = await fetch(`/api/rewards/${user.id}`);
                     const rewardsData = await rewardsRes.json();
@@ -81,7 +110,8 @@ export default function ExamHistoryPage() {
         };
 
         fetchData();
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userId]);
 
     const handleReview = async (result: ExamResult) => {
         if (!result._id) {
@@ -206,6 +236,27 @@ export default function ExamHistoryPage() {
                             )}
                         </div>
                     ))
+                )}
+
+                {hasMore && (
+                    <button
+                        type="button"
+                        onClick={() => loadPage(page + 1, true)}
+                        disabled={loadingMore}
+                        className="w-full py-3 rounded-xl text-sm font-bold border-2 border-[#0f172a] bg-white text-[#0f172a] cursor-pointer transition-all duration-200 active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                        {loadingMore ? (
+                            <>
+                                <span className="material-symbols-outlined text-lg animate-spin">progress_activity</span>
+                                Memuat...
+                            </>
+                        ) : (
+                            <>
+                                <span className="material-symbols-outlined text-lg">expand_more</span>
+                                Muat Lebih Banyak ({totalPages - page} halaman lagi)
+                            </>
+                        )}
+                    </button>
                 )}
             </div>
         </>
